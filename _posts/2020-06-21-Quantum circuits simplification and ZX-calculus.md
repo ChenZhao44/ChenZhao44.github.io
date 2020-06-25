@@ -8,13 +8,13 @@ tags:
 - ZX-calculus
 ---
 
-First of all, I would like to thank my mentor [Roger Luo](https://github.com/Roger-luo) and [Jinguo Liu](https://github.com/GiggleLiu) for supervising me during Google Summer of Code 2020. In this GSoC project, I will develop a new Julia package `ZXCalculus.jl` which implements ZX-calculus, and integrate it as a circuit simplification engine with `YaoLang.jl`, the next DSL (domain-specific language) for `Yao.jl` and quantum programs. `Yao.jl` has achieved a state-of-art quantum simulator with many advanced features such as automatic differentiation and symbolic computation. As a user of `Yao.jl`, I'm so glad to have the oppotunities to make contributions to it. In this blog post, I will summerize what we have done before the first evaluation.
+First of all, I would like to thank my mentor [Roger Luo](https://github.com/Roger-luo) and [Jinguo Liu](https://github.com/GiggleLiu) for supervising me during Google Summer of Code 2020. In this GSoC project, I will develop a new Julia package `ZXCalculus.jl` which implements ZX-calculus, and integrate it as a circuit simplification engine with `YaoLang.jl`, the next DSL (domain-specific language) for `Yao.jl` and quantum programs. `Yao.jl` has achieved a state-of-art quantum simulator with many advanced features such as automatic differentiation and symbolic computation. As a user of `Yao.jl`, I'm so glad to have the opportunity to make contributions to it. In this blog post, I will summarize what we have done before the first evaluation.
 
 ## Quantum circuits and ZX-calculus
 
 Quantum computing uses the principles of quantum mechanics for computing. To describe quantum algorithms, we often use the quantum circuit model which is the analog of the classical logic circuit model. Quantum circuits are consist of a set of basic quantum gates such as Pauli X, Y, Z gate, Hadamard gate, T gate, CNOT gate.
 
-In general, there will be lots of equivalent quantum circuits representing the same operation. At the viewpoint of quantum hardware, one wishes to find the circuit that minimizing the usage of hardware resources. Unfortunately, finding the most desired circuit is a very hard problem in computational complexity, as checking the equivalence between two quantum circuits is coQMA-hard (quantum analog of coNP) [^1],[^2]. Despite this, we still have some heuristic efficient algorithms for quantum circuits simplification. In this blog post, I will introduce a powerful tool for this problem, ZX-calculus.
+In general, there will be lots of equivalent quantum circuits representing the same operation. At the viewpoint of quantum hardware, one wishes to find the circuit that minimizing the usage of hardware resources. Unfortunately, finding the most desired circuit is a very hard problem in computational complexity, as checking the equivalence between two quantum circuits is coQMA-hard (quantum analog of coNP) [^1],[^2]. Despite this, we still have some heuristic efficient algorithms for quantum circuit simplification. In this blog post, I will introduce a powerful tool for this problem, ZX-calculus.
 
 A quantum circuit is a graph representing tensor products and matrices products. For example, this is the circuits representing 
 $$
@@ -40,7 +40,7 @@ To achieve the best performance in the compilation and enable further customizat
 
 ## Methods
 
-The circuits extraction method is a canonical method of ZX-calculus based circuits simplification algorithms. I will mainly discuss how I implement this method.
+The circuits extraction method is a canonical method of ZX-calculus based circuit simplification algorithms. I will mainly discuss how I implement this method.
 
 ### Data structures
 
@@ -102,7 +102,7 @@ function simplify!(r::AbstractRule, zxd::ZXDiagram)
 end
 ```
 
-In the simplification scheme of [^3], we need to convert a ZX-diagram to a graph-like ZX-diagram with rules i1, i2, h and f. Then simplify the graph-like ZX-diagram with local complementary rule and pivoting rule. We can accomplish these steps with the above functions. Simplified graph-like ZX-diagrams will be only small skeletons comparing to original large circuits. The only thing remained is extracting circuits from ZX-diagrams.
+In the simplification scheme of [^3], we need to convert a ZX-diagram to a graph-like ZX-diagram with rules i1, i2, h, and f. Then simplify the graph-like ZX-diagram with local complementary rule and pivoting rule. We can accomplish these steps with the above functions. Simplified graph-like ZX-diagrams will be only small skeletons comparing to original large circuits. The only thing remained is extracting circuits from ZX-diagrams.
 
 ### Circuit extraction
 
@@ -158,7 +158,7 @@ Finally we got the simplified circuit.
 In the past phases during GSoC 2020, I have built up the main part of `ZXCalculus.jl`, including
 * data structures for representing ZX-diagrams,
 * rewriting rules,
-* circuits simplification algorithms [^3],[^4],
+* circuit simplification algorithms [^3],[^4],
 * APIs for constructing ZX-diagrams from quantum gates,
 * basic visualization of ZX-diagrams.
 
