@@ -8,7 +8,7 @@ tags:
 - ZX-calculus
 ---
 
-First of all, I would like to thank my mentor [Roger Luo](https://github.com/Roger-luo) and [Jinguo Liu](https://github.com/GiggleLiu) for supervising me during Google Summer of Code 2020. In this GSoC project, I will develop a new Julia package `ZXCalculus.jl` which implements ZX-calculus, and integrate it as a circuit simplification engine with `YaoLang.jl`, the next DSL (domain-specific language) for `Yao.jl` and quantum programs. `Yao.jl` has achieved a state-of-art quantum simulator with many advanced features such as automatic differentiation and symbolic computation. As a user of `Yao.jl`, I'm so glad to have the opportunity to make contributions to it. In this blog post, I will summarize what we have done before the first evaluation.
+First of all, I would like to thank my mentor [Roger Luo](https://github.com/Roger-luo) and [Jinguo Liu](https://github.com/GiggleLiu) for supervising me during Google Summer of Code 2020. In this GSoC project, I will develop a new Julia package [`ZXCalculus.jl`](https://github.com/QuantumBFS/ZXCalculus.jl) which implements ZX-calculus, and integrate it as a circuit simplification engine with [`YaoLang.jl`](https://github.com/QuantumBFS/YaoLang.jl), the next DSL (domain-specific language) for [`Yao.jl`](https://github.com/QuantumBFS/Yao.jl) and quantum programs. `Yao.jl` has achieved a state-of-art quantum simulator with many advanced features such as automatic differentiation and symbolic computation. As a user of `Yao.jl`, I'm so glad to have the opportunity to make contributions to it. In this blog post, I will summarize what we have done before the first evaluation.
 
 ## Quantum circuits and ZX-calculus
 
