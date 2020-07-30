@@ -80,7 +80,8 @@ julia> @code_native 2 + 3
         nopw    (%rax,%rax)
 ; └
 ```
-
+Here is a picture from JuliaCon 2018 that demonstrates how Julia compiler works.
+![](\assets\blog_res\ZX\Julia_Compiling.png)
 
 ## How YaoLang.jl works
 
@@ -330,7 +331,7 @@ sum(abs.(mat - tp_mat) .> 1e-14) == 0
 ```
 
 
-## What we have done?
+## Summary
 
 During the second coding phase, I implemented the conversion between the `ZXDiagram` and the `YaoIR`, which ensures the integration of `ZXCalculus.jl` with `YaoLang.jl`. Also, the documentation is now available [here](https://yaoquantum.org/ZXCalculus.jl/dev/). And during the test of `ZXCalculus.jl` with `YaoLang.jl` and `YaoArrayRegister.jl`, I find a few bugs in the implementation of circuit extraction and phase teleportation. These bugs have been fixed by now.
 
