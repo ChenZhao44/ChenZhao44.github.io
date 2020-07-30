@@ -102,6 +102,7 @@ end
 Similar to the compiling procedures of Julia, the macro @device will parse a function into a surface-level IR in `YaoLang.jl`. Then, all macros and syntax sugar for quantum operators will be replaced by function calls. These function calls will be marked with the label `:quantum`. Now the surface-level IR will be transformed into lowered SSA IR. In `YaoLang.jl`, the SSA IR will be stored in the data structure `YaoIR`.
 
 The remaining parts are optimization of `YaoIR` and transformation from `YaoIR` to hardware-level codes. `ZXCalculus.jl` is for quantum circuit optimization and should be integrated on the optimization level.
+![](\assets\blog_res\ZX\YaoLang_Compiling.png "YaoLang.jl compiling workflow")
 
 
 ## Integration of ZXCalculus.jl
