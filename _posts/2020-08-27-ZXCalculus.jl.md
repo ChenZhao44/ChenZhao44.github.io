@@ -1,7 +1,7 @@
 ---
 layout: post
-title: GSoC 2020&#58; ZXCalculus.jl, quantum compiling and circuit simplification
-description: Metaprogramming, quantum compiling, and circuit optimization in quantum compiling.
+title: GSoC 2020&#58; ZXCalculus.jl, ZX-calculus in Julia
+description: A full-stack Julia package for ZX-calculus, and a circuit simplification engine for the Julia quantum compiler, YaoLang.jl.
 author: Chen Zhao
 tags:
 - GSoC
