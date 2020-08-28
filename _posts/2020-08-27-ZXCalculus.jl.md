@@ -11,126 +11,168 @@ tags:
 - YaoLang
 ---
 
-In the past three months, I participated my first GSoC and working on the Julia package `ZXCalculus.jl`. I want to appreciate my mentors, Roger Luo, and Jinguo Liu. Without their help, I couldn't accomplish this project. They taught me a lot, not only in Julia programming but also in how to get communication with the open-source community and contribute to it. Now, let me briefly introduce my work during GSoC 2020.
-
-## The landscape of quantum compiling
-
-As the development of the quantum hardware, we have entered a new era, the NISQ (Noisy Intermediate-Scale Quantum) era. Now, it is possible to operate more than 50 qubits without error-correcting. It means that we can do something non-trivial on real quantum computers which is impossible on classical computers. Last year, Google's quantum supremacy experiment shows some quantum advantages.
-
-However, 50 noisy qubits, even if logical qubits with error-correcting, are still too little for general purposed quantum computing. To get advantages from quantum hardware, people often use the hybrid quantum-classical computing scheme. That is, we move most computation to classical computers, and we only run the part that really needs quantum hardware on quantum computers. The famous VQE (Variational Quantum Eigensolver) used this scheme.
-
-Also, classical control-flow can make it much more easier to construct large quantum circuits. Hybrid quantum-classical programs compiling will be useful if general purposed quantum computing has been achieved. Hence, the compiling of hybrid quantum-classical programs becomes a practical problem to be solved. `YaoLang.jl` is aimed to solve this problem.
-
-The goal of `YaoLang.jl` is to construct a user-friendly quantum compiler for hybrid quantum-classical programs in Julia. That is by only using a few macros and add them to native Julia functions, one can define quantum programs. In `YaoLang.jl`, a function decorated with the macro @device will be regarded as a function with quantum operations. In these functions, macros `@ctrl`, `@measure`, `@expect` and "syntax sugar" `locs => gate` are available for defining quantum operations. For example, this represents a quantum program for quantum Fourier transformation.
-```julia
-@device function qft(n::Int)
-    1 => H
-    for k in 2:n
-        @ctrl k 1 => shift(2π / 2^k)
-    end
-
-    if n > 1
-        2:n => qft(n - 1)
-    end
-end
-```
-
-It accepts an integer `n` and returns a [quantum circuit](https://en.wikipedia.org/wiki/Quantum_circuit) (the quantum analog of the logical circuit which describes quantum algorithms). The first line `1 => H` is a line of quantum codes, which means apply the H (Hadamard gate) on the first qubit. And `@ctrl k 1 => shift(2π / 2^k)` means take the k-th qubit as a control qubit to determine whether the shift gate is applied on the first qubit.
-
-`YaoLang.jl` will compile these hybrid codes to an intermediate representation, the `YaoIR`. `YaoIR` will record which part of the hybrid program is quantum. And we can optimize the codes in `YaoIR`, then converting them to instructions that can be run on real quantum devices (e.g. IBM Q, etc.) or quantum simulators (e.g. `YaoBlocks.jl` etc.).
-![](\assets\blog_res\ZX\Quantum_Compiling.png)
-
-As demonstrated by the above picture, `ZXCalculus.jl` is aimed to simplify quantum circuits in the compiling routine. 
+In the past three months, I participated my first GSoC (Google Summer of Code) and working on the Julia package [`ZXCalculus.jl`](https://github.com/QuantumBFS/ZXCalculus.jl). In this blog post, I will briefly introduce my work during GSoC 2020.
 
 ## ZXCalculus.jl
 
 [ZX-calculus](https://en.wikipedia.org/wiki/ZX-calculus) is a graphical language for representing quantum states and operations. In ZX-calculus, we will deal with ZX-diagrams, multigraphs with some extra information. Each vertex of a ZX-diagram is called a spider. There are two types of spiders, the Z-spider and the Z-spider. Each spider is associated with a number called phase. By Dirac notation, the Z-spider and X-spider represent the following rank-2 matrices.
 ![](\assets\blog_res\ZX\spider.png)
 
-To represent ZX-diagrams in Julia, I implement a high-performance multigraph backend in Julia. 
-```julia
-mutable struct Multigraph{T<:Integer}
-    adjlist::Dict{T, Vector{T}}
-    _idmax::T
-    ...
-end
-```
-The multigraph is stored as the adjacency list. Each vertex has its unique id, and its neighbors are stored as a sorted vector of ids. The `_idmax` records the maximum vertex id, which is needed when adding new vertices into a multigraph.
-
-The struct `ZXDiagram` is for representing general ZX-diagrams.
-```julia
-struct ZXDiagram{T<:Integer, P} <: AbstractZXDiagram{T, P}
-    mg::Multigraph{T}
-
-    st::Dict{T, SpiderType.SType}
-    ps::Dict{T, P}
-
-    layout::ZXLayout{T}
-    phase_ids::Dict{T, Tuple{T, Int}}
-    _inputs::Vector{T}
-    _outputs::Vector{T}
-    ...
-end
-```
-The `mg` is the multigraph backend of the ZX-diagram. The `st` and `ps` record the spider type and the phase for each vertex. As we will mainly focus on ZX-diagrams that represent quantum circuits, the `layout` is for recording the corresponding qubit of each spider. And `_inputs` and `_outputs` record the location of inputs and outputs of the quantum circuit. The `phase_ids` stores the information that is needed in the phase teleportation algorithm.
-
-ZX-calculus rules defined how ZX-diagrams are allowed to be transformed. Here are some basic rules. 
+There are rules that define how ZX-diagrams are allowed to be transformed. Here are some basic rules. 
 ![](\assets\blog_res\ZX\rules.png)
-To apply these rules on ZX-diagrams, one need to match available spiders and rewrite them.
+ZX-diagrams can be regarded as a special type of tensor networks. And these rules also define the equivilant relation of ZX-diagrams as tensor networks. On the other hand, quantum circuits can also be regarded as tensor networks. Moreover, quantum circuits can be converted to ZX-diagrams according to the following rules. Hence, ZX-calculus becomes a powerful tool to help us finding equivilant but simpler quantum circuit. 
+
+Here are some basic purposes of `ZXCalculus.jl`.
+- Defining data structures to represent ZX-diagrams.
+- Providing APIs for creating ZX-diagrams and manipulating them with ZX-calculus rules
+- Providing a visualization tool for ZX-diagrams
+- Implementing quantum circuit simplification algorithms base on ZX-calculus (including circuit extraction[^1] and phase teleportation[^2])
+
+The data structure for representing ZX-diagrams is the multigraph. I implemented a high-performance multigraph backend according to APIs of [`LightGraphs.jl`](https://github.com/JuliaGraphs/LightGraphs.jl). For more details about the implementation, please read [the first GSoC blog post](https://chenzhao44.github.io/2020/06/21/Quantum-circuits-simplification-and-ZX-calculus/). Here, I will show a example to demonstrate how to use `ZXCalculus.jl` to simplify a quantum circuit.
+
+### Using ZXCalculus.jl for circuit simplification
+
+In `ZXCalculus.jl`, the objects we will mainly deal with are the `ZXDiagram` and `ZXGraph`, which represent the general ZX-diagram and the graph-like ZX-diagram (defined in [^1]). If one want to simplify a quantum circuit, he has to convert it to a `ZXDiagram` or construct a `ZXDiagram` directly. We can construct a ZX-diagram which represent a empty quantum circuit with `n` qubits by [`ZXDiagram(n)`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZX-diagrams). In this example, I will simplify a 4-qubits circuit.
 ```julia
-match(::Rule{r}, zxd::ZXDiagram{T, P}) where {r, T, P}
-rewrite!(::Rule{r}, zxd::ZXDiagram{T, P}, vs::Vector{T}) where {r, T, P}
-```
-Here, I used the Julia holy trait trick of multiple dispatch for different rules. And `r` can be one of `:f`, `:h`, `:i1`, `:i2`, `:c`, `:b`. The `match` function will return all available spiders of a rule `Rule{r}()`. The `rewrite!` function will rewrite the ZX-diagram `zxd` on the spiders `vs` with rule `Rule{r}()`. 
-
-
-
-## Circuit simplification with ZX-calculus
-
-To simplify quantum circuits with ZX-calculus, we will convert quantum circuits to ZX-diagrams first. A quantum circuit is composed of a set of basic gates. Each basic gate can be converted to a ZX-diagram with the following rule.
-![](\assets\blog_res\ZX\QC_to_ZX.png)
-Then we can simplify a ZX-diagram with the ZX-calculus rules. Finally, we need to extract a simplified circuit from simplified ZX-diagrams.
-
-In `ZXCalculus.jl`, we implemented two simplification algorithms, the [circuit extraction](https://arxiv.org/abs/1902.03178) algorithm for simplifying Clifford circuits and [phase teleportation](https://arxiv.org/abs/1903.10477) algorithm for reducing T-count. In these algorithms, we will deal with a special type of ZX-diagram, graph-like ZX-diagram. A graph-like ZX-diagram has only Z-spiders and they are connected with H-boxes. We defined `ZXGraph` for the graph-like ZX-diagram. 
-```julia
-struct ZXGraph{T<:Integer, P} <: AbstractZXDiagram{T, P}
-    mg::Multigraph{T}
-    ps::Dict{T, P}
-    st::Dict{T, SpiderType.SType}
-    et::Dict{Tuple{T, T}, EdgeType.EType}
-    layout::ZXLayout{T}
-    phase_ids::Dict{T,Tuple{T, Int}}
-    master::ZXDiagram{T, P}
-end
+using ZXCalculus
+zxd = ZXDiagram(4)
 ```
 
-## Integration of ZXCalculus.jl with YaoLang.jl
+Then we can add some gates to the ZX-diagram we have just constructed. We can simply use [`push_gate!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.push_gate!) and [`push_ctrl_gate!`]((https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.push_ctrl_gate!)) to do that.
+```julia
+push_gate!(zxd, Val{:Z}(), 1, 7//4)
+push_gate!(zxd, Val{:H}(), 1)
+push_gate!(zxd, Val{:X}(), 1, 1//4)
+push_gate!(zxd, Val{:H}(), 4)
+push_ctrl_gate!(zxd, Val{:CZ}(), 4, 1)
+push_ctrl_gate!(zxd, Val{:CNOT}(), 1, 4)
+push_gate!(zxd, Val{:H}(), 1)
+push_gate!(zxd, Val{:H}(), 4)
+push_gate!(zxd, Val{:Z}(), 1, 1//4)
+push_gate!(zxd, Val{:Z}(), 4, 3//2)
+push_gate!(zxd, Val{:X}(), 4, 1//1)
+push_gate!(zxd, Val{:H}(), 1)
+push_gate!(zxd, Val{:Z}(), 4, 1//2)
+push_gate!(zxd, Val{:X}(), 4, 1//1)
+push_gate!(zxd, Val{:Z}(), 2, 1//2)
+push_ctrl_gate!(zxd, Val{:CNOT}(), 3, 2)
+push_gate!(zxd, Val{:H}(), 2)
+push_ctrl_gate!(zxd, Val{:CNOT}(), 3, 2)
+push_gate!(zxd, Val{:Z}(), 2, 1//4)
+push_gate!(zxd, Val{:Z}(), 3, 1//2)
+push_gate!(zxd, Val{:H}(), 2)
+push_gate!(zxd, Val{:H}(), 3)
+push_gate!(zxd, Val{:Z}(), 3, 1//2)
+push_ctrl_gate!(zxd, Val{:CNOT}(), 3, 2)
+```
 
-For more details about the integration, please check the [last blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/). Julia will parse Julia codes to ASTs (abstract syntax trees). In `YaoLang.jl`, the macro `@device` will convert the quantum part of the AST to function calls marked as quantum. Then convert the AST to SSA (single static assignment) form. The codes in `YaoIR` are in SSA form, and we extract the quantum parts as quantum circuits. These quantum circuits can be optimized with `ZXCalculus.jl`. We implemented the conversion between the `ZXDiagram` and the quantum circuit in SSA form in `YaoLang.jl`
+Now, let's draw the circuit we have built up. The visualization tool of `ZXCalculus.jl` is currently provided in [`YaoPlots.jl`](https://github.com/QuantumBFS/YaoPlots.jl). 
+```julia
+using YaoPlots
+plot(zxd)
+```
+![original circuit](\assets\blog_res\ZX\zxd.svg)
 
-## Loading OpenQASM codes
+We can use the algorithms [`clifford_simplification`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.clifford_simplification) [^1] and [`phase_teleportation`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.phase_teleportation) [^2] to simplify this circuit.
+```julia
+ex_zxd = clifford_simplification(zxd)
+pt_zxd = phase_teleportation(zxd)
+plot(ex_zxd)
+plot(pt_zxd)
+```
+![circuit after clifford_simplification](\assets\blog_res\ZX\ex_zxd.svg)
+![circuit after phase_telefortation](\assets\blog_res\ZX\pt_zxd.svg)
 
-[OpenQASM](https://en.wikipedia.org/wiki/OpenQASM) is a quantum instruction. OpenQASM codes can be run on IBM Q devices. And quantum circuits can be stored as OpenQASM codes. Hence, a conversion between `YaoIR` and OpenQASM codes. We use the Julia package [`RBNF.jl`](https://github.com/thautwarm/RBNF.jl) to parse OpenQASM codes to ASTs, and then convert it to YaoIR.
+The phase teleportation algorithm can reduce the number of T-gates of a quantum circuit. We can use [`tcount`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.tcount-Tuple{AbstractZXDiagram}) to show the number of T-gates. In this example, the T-count decreased from 4 to 2.
+```julia
+tcount(zxd)
+tcount(pt_zxd)
+```
 
-With this conversion, we can try `ZXCalculus.jl` on larger circuits.
+One may want to apply rules on a ZX-diagram manually. We provide different APIs for this. Also, the simplification algorithm `clifford_simplification` and `phase_teleportation` are written with these APIs.
 
-## Benchmark
+The function [`match`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.match) will match all available vertices on a ZX-diagram with a given rule. And we can use the function [`rewrite!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.rewrite!) to rewrite a ZX-diagram on some matched vertices. The [`replace!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.replace!) function just match and rewrite on all matched vertices once. The [`simplify!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.replace!) function will match and rewrite a ZX-diagram with a rule until no vertices can be matched. 
 
-There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Quantomatic/pyzx). PyZX is a full-stack library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic. 
+In the `clifford_simplification`, we will first convert the given ZX-diagram to a graph-like ZX-diagram.
+```julia
+zxg = ZXGraph(zxd)
+plot(zxg)
+```
+![graph-like ZX-diagram](\assets\blog_res\ZX\zxg.svg)
+Then we simplify the graph-like ZX-diagram with rule `:lc`, `:p1`, and `:pab`.
+```julia
+simplify!(Rule{:lc}(), zxg)
+simplify!(Rule{:p1}(), zxg)
+replace!(Rule{:pab}(), zxg)
+plot(zxg)
+```
+![simplified graph-like ZX-diagram](\assets\blog_res\ZX\simp_zxg.svg)
+Finally, we extract a new circuit from the simplified graph-like ZX-diagram. 
+```julia
+ex_circ = circuit_extraction(zxg)
+```
 
-Because we need a high-performance backend for ZX-calculus, we implemented `ZXCalculus.jl`. We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples. In most examples, the T-count of optimized circuits produced by `ZXCalculus.jl` is the same as `PyZX`. However in 6 examples, `ZXCalculus.jl` has more T-count than `PyZX`. This may be caused by the different simplification strategies between `ZXCalculus.jl` and `PyZX`. 
+However, for large quantum circuits, constructing ZX-diagrams via the above APIs will be extremely cumbersome. We support a more effecient way to do that via [`YaoLang.jl`](https://github.com/QuantumBFS/YaoLang.jl).
+
+## YaoLang.jl
+
+`YaoLang.jl` is a compiler for hybrid quantum-classical programs which are very practical in the current NISQ (noisy intermediate-scale quantum) era. For more details about `YaoLang.jl` and quantum compiling, please read [my second GSoC blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/). There is a intermediate representation, `YaoIR`, for representing hybrid programs in `YaoLang.jl`. If an `YaoIR` represent a quantum circuit, one convert it to a `ZXDiagram` directly. 
+
+[OpenQASM](https://en.wikipedia.org/wiki/OpenQASM) is a quantum instruction. OpenQASM codes can be run on IBM Q devices. And quantum circuits can be stored as OpenQASM codes. We use the Julia package [`RBNF.jl`](https://github.com/thautwarm/RBNF.jl) to parse OpenQASM codes to ASTs, and then convert it to YaoIR. In conclusion, we can load circuits from QASM codes to `ZXDiagram`s via `YaoLang.jl`.
+```julia
+using YaoLang: YaoIR, is_pure_quantum
+using ZXCalculus
+
+src = """OPENQASM 2.0;
+qreg q[3];
+ccx q[0], q[1], q[2];
+ccx q[0], q[1], q[2];
+ccx q[1], q[0], q[2];
+x q[0];
+ccx q[1], q[0], q[2];
+ccx q[2], q[1], q[0];
+ccx q[2], q[1], q[0];
+ccx q[1], q[0], q[2];
+"""
+
+ir = YaoIR(@__MODULE__, src, :qasm_circ)
+ir.pure_quantum = is_pure_quantum(ir)
+
+circ = ZXDiagram(ir)
+tcount(circ)
+pt_circ = phase_teleportation(circ)
+tcount(pt_circ)
+```
+In this example, the T-count decreased from 49 to 7.
+
+## Why ZXCalculus.jl?
+
+There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Quantomatic/pyzx). PyZX is a full-stack library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
+
+So why we developed `ZXCalculus.jl`? Let me explain the necessity. `ZXCalculus.jl` is not only a full stack library for ZX-calculus, but also one of circuit simplification engines for `YaoLang.jl`. Hence, the performance becomes significantly important. If we use `PyZX` as the ZX-calculus backend, the `YaoLang.jl` compiler may become much slower. And it will be complicated to maintain a package with two languages.
+
+We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples. In most examples, the T-count of optimized circuits produced by `ZXCalculus.jl` is the same as `PyZX`. However in 6 examples, `ZXCalculus.jl` has more T-count than `PyZX`. This may be caused by the different simplification strategies between `ZXCalculus.jl` and `PyZX`. 
+
+Also, `YaoLang.jl` support hybrid quantum-classical programs. It is possible to optimize hybrid quantum-classical programs with `ZXCalculus.jl`.
 
 ## Summary and future works
 
 During GSoC 2020, I mainly accomplished the following works.
-* Representing and manipulating ZX-diagrams with high-performance
-* Implementing two simplification algorithms based on ZX-calculus
-* Adding visualization of ZX-diagrams to `YaoPlots.jl`
-* Integrating `ZXCalculus.jl` with `YaoLang.jl`
-* Adding support of OpenQASM to `YaoLang.jl`
+- Representing and manipulating ZX-diagrams with high-performance
+- Implementing two simplification algorithms based on ZX-calculus
+- Adding visualization of ZX-diagrams to `YaoPlots.jl`
+- Integrating `ZXCalculus.jl` with `YaoLang.jl`
+- Adding support of OpenQASM to `YaoLang.jl`
 
 There is still something to be polished. 
 * Finding a better simplification strategy to get lower T-counts.
 * Fully support of visualization of the `ZXGraph` (the plotting script may fail on some `ZXgraph` with phase gadgets)
 
 Also, I will keep working on `YaoLang.jl` with Roger Luo to support more circuit simplification methods (template matching methods, Quon based methods, etc.). 
+
+## Acknowledgement
+
+I want to appreciate my mentors, Roger Luo, and Jinguo Liu. Without their help, I couldn't accomplish this project. `ZXCalculus.jl` is highly inspired by `PyZX`. Thanks Aleks Kissinger and John van de Wetering, the authors of `PyZX`. They gave me useful advices on phase teleportation algorithm and reviewed the benchmarks between `PyZX` and `ZXCalculus.jl`. Thanks Google for holding the **Google Summer of Code**, that promotes the development of the open-source community.
+
+[^1]: [Graph-theoretic Simplification of Quantum Circuits with the ZX-calculus](https://arxiv.org/abs/1902.03178)
+[^2]: [Reducing T-count with the ZX-calculus](https://arxiv.org/abs/1903.10477)
