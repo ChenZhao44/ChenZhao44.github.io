@@ -18,7 +18,7 @@ In the past three months, I participated my first GSoC (Google Summer of Code) a
 [ZX-calculus](https://en.wikipedia.org/wiki/ZX-calculus) is a graphical language for representing quantum states and operations. In ZX-calculus, we will deal with ZX-diagrams, multigraphs with some extra information. Each vertex of a ZX-diagram is called a spider. There are two types of spiders, the Z-spider and the Z-spider. Each spider is associated with a number called phase. By Dirac notation, the Z-spider and X-spider represent the following rank-2 matrices.
 ![](\assets\blog_res\ZX\spider.png)
 
-There are rules that define how ZX-diagrams are allowed to be transformed. Here are some basic rules. 
+ZX-calculus rules define how ZX-diagrams are allowed to be transformed. Here are some basic rules. 
 ![](\assets\blog_res\ZX\rules.png)
 ZX-diagrams can be regarded as a special type of tensor network. And these rules also define the equivalent relation of ZX-diagrams as tensor networks. On the other hand, quantum circuits can also be regarded as tensor networks. Moreover, quantum circuits can be converted to ZX-diagrams according to the following rules. Hence, ZX-calculus becomes a powerful tool to help us finding equivalent but simpler quantum circuits. 
 
@@ -172,7 +172,7 @@ Also, I will keep working on `YaoLang.jl` with Roger Luo to support more circuit
 
 ## Acknowledgement
 
-I want to appreciate my mentors, Roger Luo, and Jinguo Liu. Without their help, I couldn't accomplish this project. `ZXCalculus.jl` is highly inspired by `PyZX`. I thank Aleks Kissinger and John van de Wetering, the authors of `PyZX`. They gave me useful advice on the phase teleportation algorithm and reviewed the benchmarks between `PyZX` and `ZXCalculus.jl`. Thanks Google for holding the **Google Summer of Code**, which promotes the development of the open-source community.
+I want to appreciate my mentors, Roger Luo, and Jinguo Liu. Without their help, I couldn't accomplish this project. `ZXCalculus.jl` is highly inspired by `PyZX`. Thank Aleks Kissinger and John van de Wetering, the authors of `PyZX`. They gave me useful advice on the phase teleportation algorithm and reviewed the benchmarks between `PyZX` and `ZXCalculus.jl`. Thank Google for holding the **Google Summer of Code**, which promotes the development of the open-source community.
 
 [^1]: [Graph-theoretic Simplification of Quantum Circuits with the ZX-calculus](https://arxiv.org/abs/1902.03178)
 [^2]: [Reducing T-count with the ZX-calculus](https://arxiv.org/abs/1903.10477)
