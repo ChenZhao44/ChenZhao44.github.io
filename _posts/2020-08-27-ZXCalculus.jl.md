@@ -145,6 +145,62 @@ tcount(pt_circ)
 ```
 In this example, the T-count decreased from 49 to 7.
 
+Moreover, we can simplify a circuit defined in `YaoLang.jl` directly. The following codes defined two quantum circuit. 
+```julia
+using YaoLang
+
+@device function test_cir()
+    @ctrl $(2, 3) 1 => X
+    1 => X
+    2 => X
+    @ctrl $(2, 1) 3 => X
+    @ctrl $(2, 1) 3 => X
+    @ctrl $(2, 1) 3 => X
+    @ctrl $(1, 2) 3 => X
+    @ctrl $(1, 3) 2 => X
+end
+cir = test_cir()
+
+@device optimizer = [:zx_teleport] function test_cir_teleport()
+    @ctrl $(2, 3) 1 => X
+    1 => X
+    2 => X
+    @ctrl $(2, 1) 3 => X
+    @ctrl $(2, 1) 3 => X
+    @ctrl $(2, 1) 3 => X
+    @ctrl $(1, 2) 3 => X
+    @ctrl $(1, 3) 2 => X
+end
+cir_teleport = test_cir_teleport()
+```
+You may notice that in the definition of the second circuit, there is an argument, `optimizer = [:zx_teleport]`. It means the compiler will call the phase teleportation algorithm in `ZXCalculus.jl`. Currently, there are only two optimizer, `:zx_teleport` for phase teleportation and `:zx_clifford` for Clifford simplification. And we will add more simplification methods in the future.
+
+Now, we can check whether these two circuits are equivalent. We can use [`YaoArrayRegister.jl`](https://github.com/QuantumBFS/YaoArrayRegister.jl) to convert them to matrices.
+```julia
+using YaoArrayRegister
+
+mat = zeros(ComplexF64, 8, 8)
+for i = 1:8
+    st = zeros(ComplexF64, 8)
+    st[i] = 1
+    r0 = ArrayReg(st)
+    r0 |> cir
+    mat[:,i] = r0.state
+end
+
+mat_teleport = zeros(ComplexF64, 8, 8)
+for i = 1:8
+    st = zeros(ComplexF64, 8)
+    st[i] = 1
+    r0 = ArrayReg(st)
+    r0 |> cir_teleport
+    mat_teleport[:,i] = r0.state
+end
+abs.(mat_teleport) .> 1e-10
+mat_teleport = (mat[1,4]/mat_teleport[1,4]) .* mat_teleport # fix the global phase
+sum(abs.(mat - mat_teleport) .> 1e-10) # it will return 0, which means two circuits are equivalent
+```
+
 ## Why ZXCalculus.jl?
 
 There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Quantomatic/pyzx). PyZX is a full-feature library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
@@ -161,16 +217,17 @@ Also, `YaoLang.jl` support hybrid quantum-classical programs. It is possible to 
 ## Summary and future works
 
 During GSoC 2020, I mainly accomplished the following works.
-- Representing and manipulating ZX-diagrams with high-performance
-- Implementing two simplification algorithms based on ZX-calculus
-- Adding visualization of ZX-diagrams to `YaoPlots.jl`
-- Integrating `ZXCalculus.jl` with `YaoLang.jl`
-- Adding support of OpenQASM to `YaoLang.jl`
+- Representing and manipulating ZX-diagrams with high-performance.
+- Implementing two simplification algorithms based on ZX-calculus.
+- Adding visualization of ZX-diagrams to `YaoPlots.jl`.
+- Integrating `ZXCalculus.jl` with `YaoLang.jl`.
+- Adding support of OpenQASM to `YaoLang.jl`.
 
 There is still something to be polished. 
 * Finding a better simplification strategy to get lower T-counts.
-* Fully support of visualization of the `ZXGfulraph` (the plotting script may fail on some `ZXgraph` with phase gadgets)
-* Converting ZX-diagrams to tensor networks
+* Fully support of visualization of the `ZXGfulraph` (the plotting script may fail on some `ZXgraph` with phase gadgets).
+* Converting ZX-diagrams to tensor networks without `YaoLang.jl`.
+* The conversion between the `YaoIR` and the `ZXDiagram` may cause the circuit different with a global phase. We should record this global phase in the later version.
 
 Also, I will keep working on `YaoLang.jl` with Roger Luo to support more circuit simplification methods (template matching methods, Quon based methods, etc.). 
 
