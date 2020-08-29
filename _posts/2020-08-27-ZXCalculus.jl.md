@@ -85,8 +85,8 @@ plot(pt_zxd)
 
 The phase teleportation algorithm can reduce the number of T-gates of a quantum circuit. We can use [`tcount`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.tcount-Tuple{AbstractZXDiagram}) to show the number of T-gates. In this example, the T-count decreased from 4 to 2.
 ```julia
-tcount(zxd)
-tcount(pt_zxd)
+tcount(zxd) # it will return 4
+tcount(pt_zxd) # it will return 2
 ```
 
 One may want to apply rules on a ZX-diagram manually. We provide different APIs for this. Also, the simplification algorithm `clifford_simplification` and `phase_teleportation` are written with these APIs.
@@ -139,9 +139,9 @@ ir = YaoIR(@__MODULE__, src, :qasm_circ)
 ir.pure_quantum = is_pure_quantum(ir)
 
 circ = ZXDiagram(ir)
-tcount(circ)
+tcount(circ) # it will return 49
 pt_circ = phase_teleportation(circ)
-tcount(pt_circ)
+tcount(pt_circ) # it will return 7
 ```
 In this example, the T-count decreased from 49 to 7.
 
@@ -196,9 +196,9 @@ for i = 1:8
     r0 |> cir_teleport
     mat_teleport[:,i] = r0.state
 end
-abs.(mat_teleport) .> 1e-10
-mat_teleport = (mat[1,4]/mat_teleport[1,4]) .* mat_teleport # fix the global phase
-sum(abs.(mat - mat_teleport) .> 1e-10) # it will return 0, which means two circuits are equivalent
+
+mat_teleport = (mat[1,4]/mat_teleport[1,4]) .* mat_teleport # fix the global phase difference
+sum(abs.(mat - mat_teleport) .> 1e-10) == 0 # true means two circuits are equivalent
 ```
 
 ## Why ZXCalculus.jl?
