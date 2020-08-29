@@ -1,7 +1,7 @@
 ---
 layout: post
 title: GSoC 2020&#58; ZXCalculus.jl, ZX-calculus in Julia
-description: A full-stack Julia package for ZX-calculus, and a circuit simplification engine for the Julia quantum compiler, YaoLang.jl.
+description: A full-feature Julia package for ZX-calculus, and a circuit simplification engine for the Julia quantum compiler, YaoLang.jl.
 author: Chen Zhao
 tags:
 - GSoC
@@ -147,9 +147,9 @@ In this example, the T-count decreased from 49 to 7.
 
 ## Why ZXCalculus.jl?
 
-There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Quantomatic/pyzx). PyZX is a full-stack library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
+There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Quantomatic/pyzx). PyZX is a full-feature library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
 
-So why we developed `ZXCalculus.jl`? Let me explain the necessity. `ZXCalculus.jl` is not only a full-stack library for ZX-calculus but also one of circuit simplification engines for `YaoLang.jl`. Hence, the performance becomes significantly important. If we use `PyZX` as the ZX-calculus backend, the `YaoLang.jl` compiler may become much slower. And it will be complicated to maintain a package with two languages.
+So why we developed `ZXCalculus.jl`? Let me explain the necessity. `ZXCalculus.jl` is not only a full-feature library for ZX-calculus but also one of circuit simplification engines for `YaoLang.jl`. Hence, the performance becomes significantly important. If we use `PyZX` as the ZX-calculus backend, the `YaoLang.jl` compiler may become much slower. And it will be complicated to maintain a package with two languages.
 
 We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. 
 ![](\assets\blog_res\ZX\benchmarks.png "Time benchmarks")
@@ -169,7 +169,8 @@ During GSoC 2020, I mainly accomplished the following works.
 
 There is still something to be polished. 
 * Finding a better simplification strategy to get lower T-counts.
-* Fully support of visualization of the `ZXGraph` (the plotting script may fail on some `ZXgraph` with phase gadgets)
+* Fully support of visualization of the `ZXGfulraph` (the plotting script may fail on some `ZXgraph` with phase gadgets)
+* Converting ZX-diagrams to tensor networks
 
 Also, I will keep working on `YaoLang.jl` with Roger Luo to support more circuit simplification methods (template matching methods, Quon based methods, etc.). 
 
