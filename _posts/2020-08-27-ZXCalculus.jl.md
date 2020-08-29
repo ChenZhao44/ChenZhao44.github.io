@@ -16,10 +16,10 @@ In the past three months, I participated my first GSoC (Google Summer of Code) a
 ## ZXCalculus.jl
 
 [ZX-calculus](https://en.wikipedia.org/wiki/ZX-calculus) is a graphical language for representing quantum states and operations. In ZX-calculus, we will deal with ZX-diagrams, multigraphs with some extra information. Each vertex of a ZX-diagram is called a spider. There are two types of spiders, the Z-spider and the Z-spider. Each spider is associated with a number called phase. By Dirac notation, the Z-spider and X-spider represent the following rank-2 matrices.
-![](\assets\blog_res\ZX\spider.png)
+![](\assets\blog_res\ZX\spider.png "Definition of the Z-spider and the X-spider")
 
 ZX-calculus rules define how ZX-diagrams are allowed to be transformed. Here are some basic rules. 
-![](\assets\blog_res\ZX\rules.png)
+![](\assets\blog_res\ZX\rules.png "ZX-calculus rules")
 ZX-diagrams can be regarded as a special type of tensor network. And these rules also define the equivalent relation of ZX-diagrams as tensor networks. On the other hand, quantum circuits can also be regarded as tensor networks. Moreover, quantum circuits can be converted to ZX-diagrams according to the following rules. Hence, ZX-calculus becomes a powerful tool to help us finding equivalent but simpler quantum circuits. 
 
 Here are some basic purposes of `ZXCalculus.jl`.
@@ -71,7 +71,7 @@ Now, let's draw the circuit we have built up. The visualization tool of `ZXCalcu
 using YaoPlots
 plot(zxd)
 ```
-![original circuit](\assets\blog_res\ZX\zxd.svg)
+![](\assets\blog_res\ZX\zxd.svg "Original circuit")
 
 We can use the algorithms [`clifford_simplification`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.clifford_simplification) [^1] and [`phase_teleportation`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.phase_teleportation) [^2] to simplify this circuit.
 ```julia
@@ -80,8 +80,8 @@ pt_zxd = phase_teleportation(zxd)
 plot(ex_zxd)
 plot(pt_zxd)
 ```
-![circuit after clifford_simplification](\assets\blog_res\ZX\ex_zxd.svg)
-![circuit after phase_telefortation](\assets\blog_res\ZX\pt_zxd.svg)
+![](\assets\blog_res\ZX\ex_zxd.svg "Circuit after clifford_simplification")
+![](\assets\blog_res\ZX\pt_zxd.svg "Circuit after phase_telefortation")
 
 The phase teleportation algorithm can reduce the number of T-gates of a quantum circuit. We can use [`tcount`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.tcount-Tuple{AbstractZXDiagram}) to show the number of T-gates. In this example, the T-count decreased from 4 to 2.
 ```julia
@@ -98,7 +98,7 @@ In the `clifford_simplification`, we will first convert the given ZX-diagram to 
 zxg = ZXGraph(zxd)
 plot(zxg)
 ```
-![graph-like ZX-diagram](\assets\blog_res\ZX\zxg.svg)
+![](\assets\blog_res\ZX\zxg.svg "Graph-like ZX-diagram")
 Then we simplify the graph-like ZX-diagram with rule `:lc`, `:p1`, and `:pab`.
 ```julia
 simplify!(Rule{:lc}(), zxg)
@@ -106,7 +106,7 @@ simplify!(Rule{:p1}(), zxg)
 replace!(Rule{:pab}(), zxg)
 plot(zxg)
 ```
-![simplified graph-like ZX-diagram](\assets\blog_res\ZX\simp_zxg.svg)
+![](\assets\blog_res\ZX\simp_zxg.svg "Simplified graph-like ZX-diagram")
 Finally, we extract a new circuit from the simplified graph-like ZX-diagram. 
 ```julia
 ex_circ = circuit_extraction(zxg)
@@ -151,7 +151,10 @@ There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Qua
 
 So why we developed `ZXCalculus.jl`? Let me explain the necessity. `ZXCalculus.jl` is not only a full-stack library for ZX-calculus but also one of circuit simplification engines for `YaoLang.jl`. Hence, the performance becomes significantly important. If we use `PyZX` as the ZX-calculus backend, the `YaoLang.jl` compiler may become much slower. And it will be complicated to maintain a package with two languages.
 
-We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples. In most examples, the T-count of optimized circuits produced by `ZXCalculus.jl` is the same as `PyZX`. However in 6 examples, `ZXCalculus.jl` has more T-count than `PyZX`. This may be caused by the different simplification strategies between `ZXCalculus.jl` and `PyZX`. 
+We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. 
+![](\assets\blog_res\ZX\benchmarks.png "Time benchmarks")
+In most examples, the T-count of optimized circuits produced by `ZXCalculus.jl` is the same as `PyZX`. However in 6 examples, `ZXCalculus.jl` has more T-count than `PyZX`. This may be caused by the different simplification strategies between `ZXCalculus.jl` and `PyZX`. 
+![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks")
 
 Also, `YaoLang.jl` support hybrid quantum-classical programs. It is possible to optimize hybrid quantum-classical programs with `ZXCalculus.jl`.
 
