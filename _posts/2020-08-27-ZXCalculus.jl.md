@@ -17,7 +17,7 @@ In the past three months, I participated my first GSoC (Google Summer of Code) a
 
 [ZX-calculus](https://en.wikipedia.org/wiki/ZX-calculus) is a graphical language for representing quantum states and operations. ZX-calculus is also used for simplifying quantum circuits. Let me show you how we can use `ZXCalculus.jl` to do circuit simplification.
 
-
+![](\assets\blog_res\ZX\circuit.png)
 Suppose that we have a quantum circuit as above. We can define this circuit with [`YaoLang.jl`](https://github.com/QuantumBFS/YaoLang.jl) by using the macro `@device` easily.
 ```julia
 julia> using YaoLang;
