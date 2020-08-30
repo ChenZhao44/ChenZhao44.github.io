@@ -5,7 +5,7 @@ description: A full-featured Julia package for ZX-calculus, and a circuit simpli
 author: Chen Zhao
 tags:
 - GSoC
-- Quantum Compiling
+- Quantum Compilation
 - ZX-calculus
 - Yao
 - YaoLang
@@ -17,7 +17,8 @@ In the past three months, I participated my first GSoC (Google Summer of Code) a
 
 [ZX-calculus](https://en.wikipedia.org/wiki/ZX-calculus) is a graphical language for representing quantum states and operations. ZX-calculus is also used for simplifying quantum circuits. Let me show you how we can use `ZXCalculus.jl` to do circuit simplification.
 
-Suppose that we have a quantum circuit as above. We can define this circuit with [`YaoLang.jl`](https://github.com/QuantumBFS/YaoLang.jl) by using the macro `@device` conveniently.
+
+Suppose that we have a quantum circuit as above. We can define this circuit with [`YaoLang.jl`](https://github.com/QuantumBFS/YaoLang.jl) by using the macro `@device` easily.
 ```julia
 julia> using YaoLang;
 
@@ -30,7 +31,7 @@ julia> @device function demo_circ()
            @ctrl 4 1 => X
            1 => H
            4 => H
-           1 => shift($(π/4))
+           1 => T
            4 => shift($(3π/2))
            4 => X
            1 => H
@@ -40,7 +41,7 @@ julia> @device function demo_circ()
            @ctrl 2 3 => X
            2 => H
            @ctrl 2 3 => X
-           2 => shift($(π/4))
+           2 => T
            3 => S
            2 => H
            3 => H
@@ -63,7 +64,7 @@ julia> @device optimizer = [:zx_teleport] function demo_circ_simp()
            @ctrl 4 1 => X
            1 => H
            4 => H
-           1 => shift($(π/4))
+           1 => T
            4 => shift($(3π/2))
            4 => X
            1 => H
@@ -73,7 +74,7 @@ julia> @device optimizer = [:zx_teleport] function demo_circ_simp()
            @ctrl 2 3 => X
            2 => H
            @ctrl 2 3 => X
-           2 => shift($(π/4))
+           2 => T
            3 => S
            2 => H
            3 => H
@@ -83,41 +84,39 @@ julia> @device optimizer = [:zx_teleport] function demo_circ_simp()
 demo_circ_simp (generic circuit with 1 methods)
 
 ```
-We can use the macro `@code_yao` to see the what circuit we have got. In this example, the gate number of the circuit has been decreased from 24 (`%7` to `%30`) to 20 (`%11` to `%30`).
+We can use the macro `@code_yao` to see the what circuit we have got. In this example, the gate number of the circuit has been decreased from 24 (`%5` to `%28`) to 20 (`%11` to `%30`).
 ```julia
 julia> @code_yao demo_circ()
 circuit demo_circ()
 1:
   %1 = shift(5.497787143782138)
   %2 = Rx(0.7853981633974483)
-  %3 = shift(0.7853981633974483)
-  %4 = shift(4.71238898038469)
-  %5 = shift(0.7853981633974483)
-  %6 = %new%(##register#266)
-  %7 = gate(%1, 1)
-  %8 = gate(H, 1)
-  %9 = gate(%2, 1)
-  %10 = gate(H, 4)
-  %11 = ctrl(Z, 4, 1)
-  %12 = ctrl(X, 1, 4)
-  %13 = gate(H, 1)
-  %14 = gate(H, 4)
-  %15 = gate(%3, 1)
-  %16 = gate(%4, 4)
-  %17 = gate(X, 4)
-  %18 = gate(H, 1)
-  %19 = gate(S, 4)
-  %20 = gate(X, 4)
-  %21 = gate(S, 2)
+  %3 = shift(4.71238898038469)
+  %4 = %new%(##register#253)
+  %5 = gate(%1, 1)
+  %6 = gate(H, 1)
+  %7 = gate(%2, 1)
+  %8 = gate(H, 4)
+  %9 = ctrl(Z, 4, 1)
+  %10 = ctrl(X, 1, 4)
+  %11 = gate(H, 1)
+  %12 = gate(H, 4)
+  %13 = gate(T, 1)
+  %14 = gate(%3, 4)
+  %15 = gate(X, 4)
+  %16 = gate(H, 1)
+  %17 = gate(S, 4)
+  %18 = gate(X, 4)
+  %19 = gate(S, 2)
+  %20 = ctrl(X, 3, 2)
+  %21 = gate(H, 2)
   %22 = ctrl(X, 3, 2)
-  %23 = gate(H, 2)
-  %24 = ctrl(X, 3, 2)
-  %25 = gate(%5, 2)
-  %26 = gate(S, 3)
-  %27 = gate(H, 2)
-  %28 = gate(H, 3)
-  %29 = gate(S, 3)
-  %30 = ctrl(X, 3, 2)
+  %23 = gate(T, 2)
+  %24 = gate(S, 3)
+  %25 = gate(H, 2)
+  %26 = gate(H, 3)
+  %27 = gate(S, 3)
+  %28 = ctrl(X, 3, 2)
   return nothing
 
 julia> @code_yao demo_circ_simp()
@@ -132,7 +131,7 @@ circuit demo_circ_simp()
   %7 = YaoLang.Rx(3.141592653589793)
   %8 = YaoLang.shift(1.5707963267948966)
   %9 = YaoLang.Rx(3.141592653589793)
-  %10 = %new%(##register#273)
+  %10 = %new%(##register#260)
   %11 = gate(H, 1)
   %12 = gate(%1, 2)
   %13 = ctrl(X, 3, 2)
@@ -188,6 +187,7 @@ Then we can check whether two matrices are equivalent.
 ```julia
 julia> mat ≈ mat_teleport
 true
+
 ```
 
 The above examples showed how `ZXCalculus.jl` works as a circuit simplification engine in `YaoLang.jl`. Now, let's open the black box for more details about `ZXCalculus.jl`.
@@ -329,6 +329,8 @@ julia> tcount(pt_circ)
 There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Quantomatic/pyzx). `PyZX` is a full-featured library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
 
 So why we developed `ZXCalculus.jl`? Let me explain the necessity. `ZXCalculus.jl` is not only a full-featured library for ZX-calculus but also one of circuit simplification engines for `YaoLang.jl`. Hence, the performance becomes significantly important. If we use `PyZX` as the ZX-calculus backend, the `YaoLang.jl` compiler may become much slower. And it will be complicated to maintain a package with two languages.
+
+### Benchmarks
 
 We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. 
 ![](\assets\blog_res\ZX\benchmarks.png "Time benchmarks")
