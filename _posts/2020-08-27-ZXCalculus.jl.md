@@ -11,9 +11,9 @@ tags:
 - YaoLang
 ---
 
-In the past three months, I participated my first GSoC (Google Summer of Code) and working on the Julia package [`ZXCalculus.jl`](https://github.com/QuantumBFS/ZXCalculus.jl). In this blog post, I will briefly introduce my work during GSoC 2020.
+In the past three months, I participated my first GSoC (Google Summer of Code) and working on the Julia package [`ZXCalculus.jl`](https://github.com/QuantumBFS/ZXCalculus.jl). In this blog post, I will briefly introduce my work during GSoC 2020 in three parts, the first part is the high level interface of using ZXCalculus as a quantum circuit simplification pass in [YaoLang](https://github.com/QuantumBFS/YaoLang.jl). The second part is the lower level interface, and the thrid part is a benchmark with Python package [`PyZX`](https://github.com/Quantomatic/pyzx).
 
-## Quantum circuit simplification
+## ZXCalculus as a quantum circuit simplification pass
 
 [ZX-calculus](https://en.wikipedia.org/wiki/ZX-calculus) is a graphical language for representing quantum states and operations. ZX-calculus is also used for simplifying quantum circuits. Let me show you how we can use `ZXCalculus.jl` to do circuit simplification.
 
@@ -192,7 +192,7 @@ true
 
 The above examples showed how `ZXCalculus.jl` works as a circuit simplification engine in `YaoLang.jl`. Now, let's see what's behind the scene.
 
-## ZXCalculus.jl
+## Low level interfaces of ZXCalculus
 
 In ZX-calculus, we will deal with ZX-diagrams, multigraphs with some extra information. Each vertex of a ZX-diagram is called a spider. There are two types of spiders, the Z-spider and the Z-spider. Each spider is associated with a number called phase. By Dirac notation, the Z-spider and X-spider represent the following rank-2 matrices.
 ![](\assets\blog_res\ZX\spider.png "Definition of the Z-spider and the X-spider (from [^1])")
@@ -333,9 +333,9 @@ So why we developed `ZXCalculus.jl`? This is because `ZXCalculus.jl` is not only
 ### Benchmarks
 
 We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM.
-![](\assets\blog_res\ZX\benchmarks.png "Time benchmarks")
+![](\assets\blog_res\ZX\benchmarks.png "The wall clock time for optimizing the same circuit in ZXCalculus and PyZX. The unit of y-axis is .... The code for benchmark could be found in repo ...")
 In most examples, the T-count of optimized circuits produced by `ZXCalculus.jl` is the same as `PyZX`. However in 6 examples, `ZXCalculus.jl` has more T-count than `PyZX`. This may be caused by the different simplification strategies between `ZXCalculus.jl` and `PyZX`. We will keep investigating it in the future as mentioned in the next section.
-![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks")
+![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks between ZXCalculus and PyZX. `TRUE` means the result of ZXCalculus matches PyZX, `FALSE` means the feeded into circuit in ZXCalculus is not fully simplified, we will keep investigate this issue. The code for benchmarks could be found in ...")
 
 Also, `YaoLang.jl` support hybrid quantum-classical programs. It is possible to optimize hybrid quantum-classical programs with `ZXCalculus.jl`.
 
