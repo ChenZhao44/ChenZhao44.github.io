@@ -51,9 +51,9 @@ julia> @device function demo_circ()
 demo_circ (generic circuit with 1 methods)
 
 ```
-`YaoLang.jl` is a compiler for hybrid quantum-classical programs that are very practical in the current NISQ (noisy intermediate-scale quantum) era. Moreover, `YaoLang.jl` is integrated with `ZXCalculus.jl`. For more details about `YaoLang.jl` and quantum compilation, please read [my second GSoC blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/). 
+`YaoLang.jl` is a compiler for hybrid quantum-classical programs that are very practical in the current NISQ (noisy intermediate-scale quantum) era. Moreover, `YaoLang.jl` is integrated with `ZXCalculus.jl`. For more details about `YaoLang.jl` and quantum compilation, please read [my second GSoC blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/).
 
-one can add an argument `optimizer = [opts...]` in the macro `@device` to simplify this circuit during compilation. Currently, there are only two optimization passes, `:zx_clifford` for Clifford simplification [^1] and `:zx_teleport` for phase teleportation [^2]. For example, with `optimizer = [:zx_teleport]`, the compiler will call the phase teleportation algorithm [^2] in `ZXCalculus.jl` to simplify the circuit.
+One can add an argument `optimizer = [opts...]` in the macro `@device` to simplify this circuit during compilation. Currently, there are only two optimization passes, `:zx_clifford` for Clifford simplification [^1] and `:zx_teleport` for phase teleportation [^2]. For example, with `optimizer = [:zx_teleport]`, the compiler will call the phase teleportation algorithm [^2] in `ZXCalculus.jl` to simplify the circuit.
 ```julia
 julia> @device optimizer = [:zx_teleport] function demo_circ_simp()
            1 => shift($(7π/4))
@@ -197,9 +197,9 @@ The above examples showed how `ZXCalculus.jl` works as a circuit simplification 
 In ZX-calculus, we will deal with ZX-diagrams, multigraphs with some extra information. Each vertex of a ZX-diagram is called a spider. There are two types of spiders, the Z-spider and the Z-spider. Each spider is associated with a number called phase. By Dirac notation, the Z-spider and X-spider represent the following rank-2 matrices.
 ![](\assets\blog_res\ZX\spider.png "Definition of the Z-spider and the X-spider (from [^1])")
 
-ZX-diagrams can be regarded as a special type of tensor network. On the other hand, quantum circuits can also be regarded as tensor networks. And quantum circuits can be converted to ZX-diagrams according to the following rules. 
+ZX-diagrams can be regarded as a special type of tensor network. On the other hand, quantum circuits can also be regarded as tensor networks. And quantum circuits can be converted to ZX-diagrams according to the following rules.
 ![](\assets\blog_res\ZX\QC_to_ZX.png "Conversion from quantum circuits to ZX-diagrams")
-The yellow box, H-box, is just a simple notation of the following spiders in ZX-calculus. 
+The yellow box, H-box, is just a simple notation of the following spiders in ZX-calculus.
 ![](\assets\blog_res\ZX\H-box.png "H-box from [^1]")
 To represent general ZX-diagrams, we defined a struct `ZXDiagram` in `ZXCalculus.jl`. We can construct a ZX-diagram which represents an empty quantum circuit with `n` qubits by [`ZXDiagram(n)`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZX-diagrams). For example, if we want to simplify the above circuit with `ZXCalculus.jl` manually. We first construct a ZX-diagram of a 4-qubits circuit.
 ```julia
@@ -233,7 +233,7 @@ push_gate!(zxd, Val(:H), 3)
 push_gate!(zxd, Val(:Z), 3, 1//2)
 push_ctrl_gate!(zxd, Val(:CNOT), 3, 2)
 ```
-Now, let's draw the ZX-diagram we have built up. The visualization tool of `ZXCalculus.jl` is currently provided in [`YaoPlots.jl`](https://github.com/QuantumBFS/YaoPlots.jl). 
+Now, let's draw the ZX-diagram we have built up. The visualization tool of `ZXCalculus.jl` is currently provided in [`YaoPlots.jl`](https://github.com/QuantumBFS/YaoPlots.jl).
 ```julia
 using YaoPlots
 plot(zxd)
@@ -266,7 +266,7 @@ In the paper [^1], they defined a special type of ZX-diagram, the graph-like ZX-
 ![](\assets\blog_res\ZX\zxgraph-rules.png "Rules for graph-like ZX-diagrams from [^1] and [^2]")
 One may want to apply rules on a ZX-diagram manually. We provide different APIs for this.
 
-The function [`match`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.match) will match all available vertices on a ZX-diagram with a given rule. And we can use the function [`rewrite!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.rewrite!) to rewrite a ZX-diagram on some matched vertices. The [`replace!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.replace!) function just match and rewrite on all matched vertices once. The [`simplify!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.replace!) function will match and rewrite a ZX-diagram with a rule until no vertices can be matched. 
+The function [`match`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.match) will match all available vertices on a ZX-diagram with a given rule. And we can use the function [`rewrite!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#ZXCalculus.rewrite!) to rewrite a ZX-diagram on some matched vertices. The [`replace!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.replace!) function just match and rewrite on all matched vertices once. The [`simplify!`](https://yaoquantum.org/ZXCalculus.jl/dev/api/#Base.replace!) function will match and rewrite a ZX-diagram with a rule until no vertices can be matched.
 
 In the `clifford_simplification`, we will first convert the given ZX-diagram to a graph-like ZX-diagram.
 ```julia
@@ -282,7 +282,7 @@ replace!(Rule{:pab}(), zxg)
 plot(zxg)
 ```
 ![](\assets\blog_res\ZX\simp_zxg.svg "Simplified graph-like ZX-diagram")
-Finally, we extract a new circuit from the simplified graph-like ZX-diagram. 
+Finally, we extract a new circuit from the simplified graph-like ZX-diagram.
 ```julia
 ex_circ = circuit_extraction(zxg)
 plot(ex_circ)
@@ -332,7 +332,7 @@ So why we developed `ZXCalculus.jl`? This is because `ZXCalculus.jl` is not only
 
 ### Benchmarks
 
-We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. 
+We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM.
 ![](\assets\blog_res\ZX\benchmarks.png "Time benchmarks")
 In most examples, the T-count of optimized circuits produced by `ZXCalculus.jl` is the same as `PyZX`. However in 6 examples, `ZXCalculus.jl` has more T-count than `PyZX`. This may be caused by the different simplification strategies between `ZXCalculus.jl` and `PyZX`. We will keep investigating it in the future as mentioned in the next section.
 ![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks")
@@ -348,13 +348,13 @@ During GSoC 2020, I mainly accomplished the following works.
 - Integrating `ZXCalculus.jl` with `YaoLang.jl`.
 - Adding support of OpenQASM to `YaoLang.jl`.
 
-There is still something to be polished. 
+There is still something to be polished.
 * Finding a better simplification strategy to get lower T-counts.
 * Fully support of visualization of the `ZXGraph` (the plotting script may fail on some `ZXGraph` with phase gadgets).
 * Converting ZX-diagrams to tensor networks without `YaoLang.jl`.
 * The conversion between the `YaoIR` and the `ZXDiagram` may cause the circuit different with a global phase. We should record this global phase in the later version.
 
-Also, I will keep working on `YaoLang.jl` with Roger Luo to support more circuit simplification methods (template matching methods, Quon based methods, etc.). 
+Also, I will keep working on `YaoLang.jl` with Roger Luo to support more circuit simplification methods (template matching methods, Quon based methods, etc.).
 
 ## Acknowledgement
 
