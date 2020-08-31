@@ -11,7 +11,7 @@ tags:
 - YaoLang
 ---
 
-In the past three months, I participated my first GSoC (Google Summer of Code) and working on the Julia package [**ZXCalculus.jl**](https://github.com/QuantumBFS/ZXCalculus.jl). In this blog post, I will briefly introduce my work during GSoC 2020 in three parts, the first part is the high level interface of using ZXCalculus as a quantum circuit simplification pass in [**YaoLang.jl**](https://github.com/QuantumBFS/YaoLang.jl). The second part is the lower level interface, and the thrid part is a benchmark with Python package [**PyZX**](https://github.com/Quantomatic/pyzx).
+In the past three months, I participated my first GSoC (Google Summer of Code) and working on the Julia package [**ZXCalculus.jl**](https://github.com/QuantumBFS/ZXCalculus.jl). In this blog post, I will briefly introduce my work during GSoC 2020 in three parts, the first part is the high level interface of using **ZXCalculus.jl** as a quantum circuit simplification pass in [**YaoLang.jl**](https://github.com/QuantumBFS/YaoLang.jl). The second part is the lower level interface, and the thrid part is a benchmark with Python package [**PyZX**](https://github.com/Quantomatic/pyzx).
 
 ## ZXCalculus.jl as a quantum circuit simplification pass
 
@@ -95,7 +95,7 @@ lines = readlines("gf2^8_mult.qasm")
 src = prod([lines[1]; lines[3:end]])
 ir = YaoIR(@__MODULE__, src, :qasm_circ)
 ir.pure_quantum = is_pure_quantum(ir)
-    
+
 circ = ZXDiagram(ir)
 pt_circ = phase_teleportation(circ)
 ```
@@ -217,9 +217,9 @@ So why we developed **ZXCalculus.jl**? This is because **ZXCalculus.jl** is not 
 ### Benchmarks
 
 We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). **ZXCalculus.jl** has 8x to 63x speed-up in these examples (the run time of **ZXCalculus.jl** is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. The code for benchmarks could be found [here](https://github.com/Roger-luo/quantum-benchmarks).
-![](\assets\blog_res\ZX\benchmarks.png "The wall clock time for optimizing the same circuit in ZXCalculus and PyZX. The run time of ZXCalculus.jl is scaled to 1 for each circuit.")
+![](\assets\blog_res\ZX\benchmarks.png "The wall clock time for optimizing the same circuit in ZXCalculus.jl and PyZX. The run time of ZXCalculus.jl is scaled to 1 for each circuit.")
 In most examples, the T-count of optimized circuits produced by **ZXCalculus.jl** is the same as **PyZX**. However in 6 examples, **ZXCalculus.jl** has more T-count than **PyZX**. This may be caused by the different simplification strategies between **ZXCalculus.jl** and **PyZX**. We will keep investigating it in the future as mentioned in the next section.
-![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks between ZXCalculus and PyZX. `TRUE` means the result of ZXCalculus matches PyZX, `FALSE` means the feeded circuit in ZXCalculus is not fully simplified, we will keep investigate this issue.")
+![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks between ZXCalculus.jl and PyZX. `TRUE` means the result of ZXCalculus.jl matches PyZX, `FALSE` means the feeded circuit in ZXCalculus.jl is not fully simplified, we will keep investigate this issue.")
 
 Also, **YaoLang.jl** support hybrid quantum-classical programs. It is possible to optimize hybrid quantum-classical programs with **ZXCalculus.jl**.
 
