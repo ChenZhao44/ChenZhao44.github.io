@@ -51,9 +51,9 @@ julia> @device function demo_circ()
 demo_circ (generic circuit with 1 methods)
 
 ```
-`YaoLang.jl` is a quantum compiler for hybrid quantum-classical programs that are very practical in the current NISQ (noisy intermediate-scale quantum) era. Moreover, `YaoLang.jl` is integrated with `ZXCalculus.jl`. For more details about `YaoLang.jl` and quantum compiling, please read [my second GSoC blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/). 
+`YaoLang.jl` is a compiler for hybrid quantum-classical programs that are very practical in the current NISQ (noisy intermediate-scale quantum) era. Moreover, `YaoLang.jl` is integrated with `ZXCalculus.jl`. For more details about `YaoLang.jl` and quantum compilation, please read [my second GSoC blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/). 
 
-If we want to simplify this circuit when compiling, just add an argument `optimizer = [opts...]` in the macro `@device`. Currently, there are only two optimizer, `:zx_clifford` for Clifford simplification [^1] and `:zx_teleport` for phase teleportation [^2]. For example, with `optimizer = [:zx_teleport]`, the compiler will call the phase teleportation algorithm [^2] in `ZXCalculus.jl` to simplify the circuit.
+one can add an argument `optimizer = [opts...]` in the macro `@device` to simplify this circuit during compilation. Currently, there are only two optimization passes, `:zx_clifford` for Clifford simplification [^1] and `:zx_teleport` for phase teleportation [^2]. For example, with `optimizer = [:zx_teleport]`, the compiler will call the phase teleportation algorithm [^2] in `ZXCalculus.jl` to simplify the circuit.
 ```julia
 julia> @device optimizer = [:zx_teleport] function demo_circ_simp()
            1 => shift($(7π/4))
@@ -190,7 +190,7 @@ true
 
 ```
 
-The above examples showed how `ZXCalculus.jl` works as a circuit simplification engine in `YaoLang.jl`. Now, let's open the black box for more details about `ZXCalculus.jl`.
+The above examples showed how `ZXCalculus.jl` works as a circuit simplification engine in `YaoLang.jl`. Now, let's see what's behind the scene.
 
 ## ZXCalculus.jl
 
@@ -326,9 +326,9 @@ julia> tcount(pt_circ)
 
 ## Why ZXCalculus.jl?
 
-There is a Python implementation of ZX-calculus, [`PyZX`](https://github.com/Quantomatic/pyzx). `PyZX` is a full-featured library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
+The above algorithms are first implemented in a Python package [`PyZX`](https://github.com/Quantomatic/pyzx). `PyZX` is a full-featured library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
 
-So why we developed `ZXCalculus.jl`? Let me explain the necessity. `ZXCalculus.jl` is not only a full-featured library for ZX-calculus but also one of circuit simplification engines for `YaoLang.jl`. Hence, the performance becomes significantly important. If we use `PyZX` as the ZX-calculus backend, the `YaoLang.jl` compiler may become much slower. And it will be complicated to maintain a package with two languages.
+So why we developed `ZXCalculus.jl`? This is because `ZXCalculus.jl` is not only a full-featured library for ZX-calculus but also one of circuit simplification engines for `YaoLang.jl`. A light-weight native implementation of ZX-calculus is necessary since depending on a Python package will make the compiler slower and more complicated.
 
 ### Benchmarks
 
