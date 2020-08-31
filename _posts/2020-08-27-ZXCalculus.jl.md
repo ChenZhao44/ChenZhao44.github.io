@@ -13,48 +13,15 @@ tags:
 
 In the past three months, I participated my first GSoC (Google Summer of Code) and working on the Julia package [`ZXCalculus.jl`](https://github.com/QuantumBFS/ZXCalculus.jl). In this blog post, I will briefly introduce my work during GSoC 2020 in three parts, the first part is the high level interface of using ZXCalculus as a quantum circuit simplification pass in [YaoLang](https://github.com/QuantumBFS/YaoLang.jl). The second part is the lower level interface, and the thrid part is a benchmark with Python package [`PyZX`](https://github.com/Quantomatic/pyzx).
 
-## ZXCalculus as a quantum circuit simplification pass
+## ZXCalculus.jl as a quantum circuit simplification pass
 
 [ZX-calculus](https://en.wikipedia.org/wiki/ZX-calculus) is a graphical language for representing quantum states and operations. ZX-calculus is also used for simplifying quantum circuits. Let me show you how we can use `ZXCalculus.jl` to do circuit simplification.
 
 ![](\assets\blog_res\ZX\circuit.png)
-Suppose that we have a quantum circuit as above. We can define this circuit with [`YaoLang.jl`](https://github.com/QuantumBFS/YaoLang.jl) by using the macro `@device` easily.
+Suppose that we have a quantum circuit with 24 gates as above. We can define this circuit with [`YaoLang.jl`](https://github.com/QuantumBFS/YaoLang.jl) by using the macro `@device` easily. `YaoLang.jl` is a compiler for hybrid quantum-classical programs that are very practical in the current NISQ (noisy intermediate-scale quantum) era. Moreover, `YaoLang.jl` is integrated with `ZXCalculus.jl`. For more details about `YaoLang.jl` and quantum compilation, please read [my second GSoC blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/).
 ```julia
 julia> using YaoLang;
 
-julia> @device function demo_circ()
-           1 => shift($(7π/4))
-           1 => H
-           1 => Rx($(π/4))
-           4 => H
-           @ctrl 1 4 => Z
-           @ctrl 4 1 => X
-           1 => H
-           4 => H
-           1 => T
-           4 => shift($(3π/2))
-           4 => X
-           1 => H
-           4 => S
-           4 => X
-           2 => S
-           @ctrl 2 3 => X
-           2 => H
-           @ctrl 2 3 => X
-           2 => T
-           3 => S
-           2 => H
-           3 => H
-           3 => S
-           @ctrl 2 3 => X
-       end
-demo_circ (generic circuit with 1 methods)
-
-```
-`YaoLang.jl` is a compiler for hybrid quantum-classical programs that are very practical in the current NISQ (noisy intermediate-scale quantum) era. Moreover, `YaoLang.jl` is integrated with `ZXCalculus.jl`. For more details about `YaoLang.jl` and quantum compilation, please read [my second GSoC blog post](https://chenzhao44.github.io/2020/07/28/Quantum-Compiler/).
-
-One can add an argument `optimizer = [opts...]` in the macro `@device` to simplify this circuit during compilation. Currently, there are only two optimization passes, `:zx_clifford` for Clifford simplification [^1] and `:zx_teleport` for phase teleportation [^2]. For example, with `optimizer = [:zx_teleport]`, the compiler will call the phase teleportation algorithm [^2] in `ZXCalculus.jl` to simplify the circuit.
-```julia
 julia> @device optimizer = [:zx_teleport] function demo_circ_simp()
            1 => shift($(7π/4))
            1 => H
@@ -84,109 +51,61 @@ julia> @device optimizer = [:zx_teleport] function demo_circ_simp()
 demo_circ_simp (generic circuit with 1 methods)
 
 ```
-We can use the macro `@code_yao` to see the what circuit we have got. In this example, the gate number of the circuit has been decreased from 24 (`%5` to `%28`) to 20 (`%11` to `%30`).
-```julia
-julia> @code_yao demo_circ()
-circuit demo_circ()
-1:
-  %1 = shift(5.497787143782138)
-  %2 = Rx(0.7853981633974483)
-  %3 = shift(4.71238898038469)
-  %4 = %new%(##register#253)
-  %5 = gate(%1, 1)
-  %6 = gate(H, 1)
-  %7 = gate(%2, 1)
-  %8 = gate(H, 4)
-  %9 = ctrl(Z, 4, 1)
-  %10 = ctrl(X, 1, 4)
-  %11 = gate(H, 1)
-  %12 = gate(H, 4)
-  %13 = gate(T, 1)
-  %14 = gate(%3, 4)
-  %15 = gate(X, 4)
-  %16 = gate(H, 1)
-  %17 = gate(S, 4)
-  %18 = gate(X, 4)
-  %19 = gate(S, 2)
-  %20 = ctrl(X, 3, 2)
-  %21 = gate(H, 2)
-  %22 = ctrl(X, 3, 2)
-  %23 = gate(T, 2)
-  %24 = gate(S, 3)
-  %25 = gate(H, 2)
-  %26 = gate(H, 3)
-  %27 = gate(S, 3)
-  %28 = ctrl(X, 3, 2)
-  return nothing
+One can add an argument `optimizer = [opts...]` in the macro `@device` to simplify this circuit during compilation. Currently, there are only two optimization passes, `:zx_clifford` for Clifford simplification [^1] and `:zx_teleport` for phase teleportation [^2]. For example, with `optimizer = [:zx_teleport]`, the compiler will call the phase teleportation algorithm [^2] in `ZXCalculus.jl` to simplify the circuit.
 
-julia> @code_yao demo_circ_simp()
-circuit demo_circ_simp()
-1:
-  %1 = YaoLang.shift(1.5707963267948966)
-  %2 = YaoLang.shift(0.7853981633974483)
-  %3 = YaoLang.Rx(0.7853981633974483)
-  %4 = YaoLang.shift(1.5707963267948966)
-  %5 = YaoLang.shift(4.71238898038469)
-  %6 = YaoLang.shift(1.5707963267948966)
-  %7 = YaoLang.Rx(3.141592653589793)
-  %8 = YaoLang.shift(1.5707963267948966)
-  %9 = YaoLang.Rx(3.141592653589793)
-  %10 = %new%(##register#260)
-  %11 = gate(H, 1)
-  %12 = gate(%1, 2)
-  %13 = ctrl(X, 3, 2)
-  %14 = gate(H, 4)
-  %15 = ctrl(Z, 1, 4)
-  %16 = gate(H, 2)
-  %17 = gate(%2, 2)
-  %18 = ctrl(X, 3, 2)
-  %19 = gate(%3, 1)
-  %20 = ctrl(X, 1, 4)
-  %21 = gate(H, 2)
-  %22 = gate(%4, 3)
-  %23 = gate(H, 4)
-  %24 = gate(H, 3)
-  %25 = gate(%5, 4)
-  %26 = gate(%6, 3)
-  %27 = gate(%7, 4)
-  %28 = ctrl(X, 3, 2)
-  %29 = gate(%8, 4)
-  %30 = gate(%9, 4)
-  return nothing
+We can use the macro `@code_yao` to see the what circuit we have got. In this example, the gate number of the circuit has been decreased from 24 to 20.
+```julia
+julia> using YaoLang.Compiler
+
+julia> gate_count(demo_circ_simp)
+Dict{Any,Any} with 8 entries:
+  "YaoLang.Rx(3.141592653589793)"     => 2
+  "YaoLang.H"                         => 6
+  "YaoLang.Rx(0.7853981633974483)"    => 1
+  "YaoLang.shift(4.71238898038469)"   => 1
+  "YaoLang.shift(1.5707963267948966)" => 4
+  "YaoLang.shift(0.7853981633974483)" => 1
+  "@ctrl YaoLang.Z"                   => 1
+  "@ctrl YaoLang.X"                   => 4
 
 ```
 
-We can check whether these two circuits are equivalent. We can use [`YaoArrayRegister.jl`](https://github.com/QuantumBFS/YaoArrayRegister.jl) to convert them to matrices.
+We can use [`YaoArrayRegister.jl`](https://github.com/QuantumBFS/YaoArrayRegister.jl) to apply this simplified circuit on a quantum state.
 ```julia
-using YaoArrayRegister;
+julia> using YaoArrayRegister;
 
-circ = demo_circ()
-circ_teleport = demo_circ_simp()
-n = 4;
+julia> circ_teleport = demo_circ_simp()
+demo_circ_simp (quantum circuit)
 
-mat = zeros(ComplexF64, 2^n, 2^n);
-for i = 1:2^n
-    st = zeros(ComplexF64, 2^n)
-    st[i] = 1
-    r0 = ArrayReg(st)
-    r0 |> circ
-    mat[:,i] = r0.state
-end
-mat_teleport = zeros(ComplexF64, 2^n, 2^n);
-for i = 1:2^n
-    st = zeros(ComplexF64, 2^n)
-    st[i] = 1
-    r0 = ArrayReg(st)
-    r0 |> circ_teleport
-    mat_teleport[:,i] = r0.state
-end
+julia> r = rand_state(4);
 
-mat_teleport = (mat[1,1]/mat_teleport[1,1]) .* mat_teleport; # fix the global phase difference
+julia> r |> circ_teleport
+ArrayReg{1, Complex{Float64}, Array...}
+    active qubits: 4/4
+
 ```
-Then we can check whether two matrices are equivalent.
+
+One can also load circuits from [OpenQASM](https://en.wikipedia.org/wiki/OpenQASM) codes. OpenQASM is a quantum instruction. OpenQASM codes can be run on IBM Q devices. And quantum circuits can be stored as OpenQASM codes. I used the Julia package [`RBNF.jl`](https://github.com/thautwarm/RBNF.jl) (a Julia parser that parses code to restricted [Backus-Naur form](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form)) to parse OpenQASM codes to ASTs, and then convert it to YaoIR, an intermediate representation for hybrid quantum-classical programs in `YaoLang.jl`. This makes it possible to read circuits from OpenQASM codes to `ZXCalculus.jl` via `YaoLang.jl`.
+
 ```julia
-julia> mat ≈ mat_teleport
-true
+using YaoLang: YaoIR, is_pure_quantum
+using ZXCalculus
+
+lines = readlines("gf2^8_mult.qasm")
+src = prod([lines[1]; lines[3:end]])
+ir = YaoIR(@__MODULE__, src, :qasm_circ)
+ir.pure_quantum = is_pure_quantum(ir)
+    
+circ = ZXDiagram(ir)
+pt_circ = phase_teleportation(circ)
+```
+Here, we got a load a circuit as a `ZXDiagram` from a `.qasm` file which can be found [here](https://github.com/QuantumBFS/ZXCalculus.jl/tree/master/benchmark/circuits). And we used the phase teleportation algorithm to simplify it. We can see that the T-count of the circuit decreased from 448 to 264.
+```julia
+julia> tcount(circ)
+448
+
+julia> tcount(pt_circ)
+264
 
 ```
 
@@ -289,41 +208,6 @@ plot(ex_circ)
 ```
 ![](\assets\blog_res\ZX\ex_zxd.svg "Extracted circuit")
 
-## Read circuit from OpenQASM codes
-
-[OpenQASM](https://en.wikipedia.org/wiki/OpenQASM) is a quantum instruction. OpenQASM codes can be run on IBM Q devices. And quantum circuits can be stored as OpenQASM codes. I used the Julia package [`RBNF.jl`](https://github.com/thautwarm/RBNF.jl) (a Julia parser that parses code to restricted [Backus-Naur form](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form)) to parse OpenQASM codes to ASTs, and then convert it to YaoIR, an intermediate representation for hybrid quantum-classical programs in `YaoLang.jl`. This makes it possible to read circuits from OpenQASM codes to `ZXCalculus.jl` via `YaoLang.jl`.
-
-```julia
-using YaoLang: YaoIR, is_pure_quantum
-using ZXCalculus
-
-src = """OPENQASM 2.0;
-qreg q[3];
-ccx q[0], q[1], q[2];
-ccx q[0], q[1], q[2];
-ccx q[1], q[0], q[2];
-x q[0];
-ccx q[1], q[0], q[2];
-ccx q[2], q[1], q[0];
-ccx q[2], q[1], q[0];
-ccx q[1], q[0], q[2];
-"""
-
-ir = YaoIR(@__MODULE__, src, :qasm_circ)
-ir.pure_quantum = is_pure_quantum(ir)
-
-circ = ZXDiagram(ir)
-pt_circ = phase_teleportation(circ)
-```
-Here, we got a `ZXDiagram` from QASM codes. And we used the phase teleportation algorithm to simplify it. We can see that the T-count of the circuit decreased from 49 to 7.
-```julia
-julia> tcount(circ)
-49
-
-julia> tcount(pt_circ)
-7
-```
-
 ## Why ZXCalculus.jl?
 
 The above algorithms are first implemented in a Python package [`PyZX`](https://github.com/Quantomatic/pyzx). `PyZX` is a full-featured library for manipulating large-scale quantum circuits and ZX-diagrams. It provides many amazing features of visualization and supports different forms of quantum circuits including QASM, Quipper, and Quantomatic.
@@ -332,10 +216,10 @@ So why we developed `ZXCalculus.jl`? This is because `ZXCalculus.jl` is not only
 
 ### Benchmarks
 
-We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM.
-![](\assets\blog_res\ZX\benchmarks.png "The wall clock time for optimizing the same circuit in ZXCalculus and PyZX. The unit of y-axis is .... The code for benchmark could be found in repo ...")
+We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). `ZXCalculus.jl` has 8x to 63x speed-up in these examples (the run time of `ZXCalculus.jl` is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. The code for benchmarks could be found [here](https://github.com/Roger-luo/quantum-benchmarks).
+![](\assets\blog_res\ZX\benchmarks.png "The wall clock time for optimizing the same circuit in ZXCalculus and PyZX. The run time of `ZXCalculus.jl` is scaled to 1 for each circuit.")
 In most examples, the T-count of optimized circuits produced by `ZXCalculus.jl` is the same as `PyZX`. However in 6 examples, `ZXCalculus.jl` has more T-count than `PyZX`. This may be caused by the different simplification strategies between `ZXCalculus.jl` and `PyZX`. We will keep investigating it in the future as mentioned in the next section.
-![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks between ZXCalculus and PyZX. `TRUE` means the result of ZXCalculus matches PyZX, `FALSE` means the feeded into circuit in ZXCalculus is not fully simplified, we will keep investigate this issue. The code for benchmarks could be found in ...")
+![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks between ZXCalculus and PyZX. `TRUE` means the result of ZXCalculus matches PyZX, `FALSE` means the feeded circuit in ZXCalculus is not fully simplified, we will keep investigate this issue.")
 
 Also, `YaoLang.jl` support hybrid quantum-classical programs. It is possible to optimize hybrid quantum-classical programs with `ZXCalculus.jl`.
 
@@ -349,10 +233,10 @@ During GSoC 2020, I mainly accomplished the following works.
 - Adding support of OpenQASM to `YaoLang.jl`.
 
 There is still something to be polished.
-* Finding a better simplification strategy to get lower T-counts.
-* Fully support of visualization of the `ZXGraph` (the plotting script may fail on some `ZXGraph` with phase gadgets).
-* Converting ZX-diagrams to tensor networks without `YaoLang.jl`.
-* The conversion between the `YaoIR` and the `ZXDiagram` may cause the circuit different with a global phase. We should record this global phase in the later version.
+- Finding a better simplification strategy to get lower T-counts.
+- Fully support of visualization of the `ZXGraph` (the plotting script may fail on some `ZXGraph` with phase gadgets).
+- Converting ZX-diagrams to tensor networks without `YaoLang.jl`.
+- The conversion between the `YaoIR` and the `ZXDiagram` may cause the circuit different with a global phase. We should record this global phase in the later version.
 
 Also, I will keep working on `YaoLang.jl` with Roger Luo to support more circuit simplification methods (template matching methods, Quon based methods, etc.).
 
