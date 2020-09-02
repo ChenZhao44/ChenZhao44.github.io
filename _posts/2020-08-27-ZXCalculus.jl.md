@@ -58,15 +58,12 @@ We can use the macro `@code_yao` to see the what circuit we have got. In this ex
 julia> using YaoLang.Compiler
 
 julia> gate_count(demo_circ_simp)
-Dict{Any,Any} with 8 entries:
-  "YaoLang.Rx(3.141592653589793)"     => 2
-  "YaoLang.H"                         => 6
-  "YaoLang.Rx(0.7853981633974483)"    => 1
-  "YaoLang.shift(4.71238898038469)"   => 1
-  "YaoLang.shift(1.5707963267948966)" => 4
-  "YaoLang.shift(0.7853981633974483)" => 1
-  "@ctrl YaoLang.Z"                   => 1
-  "@ctrl YaoLang.X"                   => 4
+Dict{Any,Any} with 5 entries:
+  "YaoLang.H"       => 6
+  "YaoLang.Rx"      => 3
+  "YaoLang.shift"   => 6
+  "@ctrl YaoLang.Z" => 1
+  "@ctrl YaoLang.X" => 4
 
 ```
 
@@ -99,7 +96,7 @@ ir.pure_quantum = is_pure_quantum(ir)
 circ = ZXDiagram(ir)
 pt_circ = phase_teleportation(circ)
 ```
-Here, we got a load a circuit as a `ZXDiagram` from a `.qasm` file which can be found [here](https://github.com/QuantumBFS/ZXCalculus.jl/tree/master/benchmark/circuits). And we used the phase teleportation algorithm to simplify it. We can see that the T-count of the circuit decreased from 448 to 264.
+Here, we got a load a circuit as a `ZXDiagram` from a `.qasm` file which could be found [here](https://github.com/QuantumBFS/ZXCalculus.jl/tree/master/benchmark/circuits). And we used the phase teleportation algorithm to simplify it. We can see that the T-count of the circuit decreased from 448 to 264.
 ```julia
 julia> tcount(circ)
 448
