@@ -58,12 +58,15 @@ We can use the macro `@code_yao` to see the what circuit we have got. In this ex
 julia> using YaoLang.Compiler
 
 julia> gate_count(demo_circ_simp)
-Dict{Any,Any} with 5 entries:
-  "YaoLang.H"       => 6
-  "YaoLang.Rx"      => 3
-  "YaoLang.shift"   => 6
-  "@ctrl YaoLang.Z" => 1
-  "@ctrl YaoLang.X" => 4
+Dict{Any,Any} with 8 entries:
+  "YaoLang.Rx(3.141592653589793)"     => 2
+  "YaoLang.H"                         => 6
+  "YaoLang.Rx(0.7853981633974483)"    => 1
+  "YaoLang.shift(4.71238898038469)"   => 1
+  "YaoLang.shift(1.5707963267948966)" => 4
+  "YaoLang.shift(0.7853981633974483)" => 1
+  "@ctrl YaoLang.Z"                   => 1
+  "@ctrl YaoLang.X"                   => 4
 
 ```
 
@@ -96,7 +99,7 @@ ir.pure_quantum = is_pure_quantum(ir)
 circ = ZXDiagram(ir)
 pt_circ = phase_teleportation(circ)
 ```
-Here, we got a load a circuit as a `ZXDiagram` from a `.qasm` file which could be found [here](https://github.com/QuantumBFS/ZXCalculus.jl/tree/master/benchmark/circuits). And we used the phase teleportation algorithm to simplify it. We can see that the T-count of the circuit decreased from 448 to 264.
+Here, we got a load a circuit as a `ZXDiagram` from a `.qasm` file which can be found [here](https://github.com/QuantumBFS/ZXCalculus.jl/tree/master/benchmark/circuits). And we used the phase teleportation algorithm to simplify it. We can see that the T-count of the circuit decreased from 448 to 264.
 ```julia
 julia> tcount(circ)
 448
@@ -213,9 +216,9 @@ So why we developed **ZXCalculus.jl**? This is because **ZXCalculus.jl** is not 
 
 ### Benchmarks
 
-We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). **ZXCalculus.jl** has 8x to 63x speed-up in these examples (the run time of **ZXCalculus.jl** is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. The code for benchmarks could be found [here](https://github.com/Roger-luo/quantum-benchmarks).
+We benchmarked the phase teleportation algorithm on 40 circuits of various numbers of gates (from 57 to 91642). **ZXCalculus.jl** has 6x to 50x speed-up in these examples (the run time of **ZXCalculus.jl** is scaled to 1 for each circuit in this picture). These benchmarks are run on a laptop with Intel i7-10710U CPU and 16 GB RAM. The code for benchmarks could be found [here](https://github.com/Roger-luo/quantum-benchmarks).
 ![](\assets\blog_res\ZX\benchmarks.png "The wall clock time for optimizing the same circuit in ZXCalculus.jl and PyZX. The run time of ZXCalculus.jl is scaled to 1 for each circuit.")
-In most examples, the T-count of optimized circuits produced by **ZXCalculus.jl** is the same as **PyZX**. However in 6 examples, **ZXCalculus.jl** has more T-count than **PyZX**. This may be caused by the different simplification strategies between **ZXCalculus.jl** and **PyZX**. We will keep investigating it in the future as mentioned in the next section.
+In most examples, the T-count of optimized circuits produced by **ZXCalculus.jl** is the same as **PyZX**. However in 2 examples, **ZXCalculus.jl** has more T-count than **PyZX**. This may be caused by the different simplification strategies between **ZXCalculus.jl** and **PyZX**. We will keep investigating it in the future as mentioned in the next section.
 ![](\assets\blog_res\ZX\benchmarks t-count.png "T-count benchmarks between ZXCalculus.jl and PyZX. `TRUE` means the result of ZXCalculus.jl matches PyZX, `FALSE` means the feeded circuit in ZXCalculus.jl is not fully simplified, we will keep investigate this issue.")
 
 Also, **YaoLang.jl** support hybrid quantum-classical programs. It is possible to optimize hybrid quantum-classical programs with **ZXCalculus.jl**.
