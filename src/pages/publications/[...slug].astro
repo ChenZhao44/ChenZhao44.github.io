@@ -1,0 +1,31 @@
+---
+import { getCollection } from "astro:content";
+
+import Publication from "@/components/publication/Publication.astro";
+import PageLayout from "@/layouts/Base.astro";
+import type { GetStaticPaths, InferGetStaticPropsType } from "astro";
+
+// if you're using an adaptor in SSR mode, getStaticPaths wont work -> https://docs.astro.build/en/guides/routing/#modifying-the-slug-example-for-ssr
+export const getStaticPaths = (async () => {
+	const allPublications = await getCollection("publication");
+	return allPublications.map((publication) => ({
+		params: { slug: publication.id },
+		props: { publication },
+	}));
+}) satisfies GetStaticPaths;
+
+export type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { publication } = Astro.props;
+
+const meta = {
+	description:
+		publication.data.description ||
+		`Read about my publication posted on: ${publication.data.publishDate.toLocaleDateString()}`,
+	title: publication.data.title,
+};
+---
+
+<PageLayout meta={meta}>
+	<Publication as="h1" publication={publication} />
+</PageLayout>

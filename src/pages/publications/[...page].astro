@@ -1,0 +1,63 @@
+---
+import { type CollectionEntry, getCollection } from "astro:content";
+import Pagination from "@/components/Paginator.astro";
+import Publication from "@/components/publication/Publication.astro";
+import PageLayout from "@/layouts/Base.astro";
+import { collectionDateSort } from "@/utils/date";
+import type { GetStaticPaths, Page } from "astro";
+import { Icon } from "astro-icon/components";
+
+export const getStaticPaths = (async ({ paginate }) => {
+	const MAX_PUBLICATIONS_PER_PAGE = 10;
+	const allPublications = await getCollection("publication");
+	return paginate(allPublications.sort(collectionDateSort), { pageSize: MAX_PUBLICATIONS_PER_PAGE });
+}) satisfies GetStaticPaths;
+
+interface Props {
+	page: Page<CollectionEntry<"publication">>;
+	uniqueTags: string[];
+}
+
+const { page } = Astro.props;
+
+const meta = {
+	description: "Read my collection of publications",
+	title: "Publications",
+};
+
+const paginationProps = {
+	...(page.url.prev && {
+		prevUrl: {
+			text: "← Previous Page",
+			url: page.url.prev,
+		},
+	}),
+	...(page.url.next && {
+		nextUrl: {
+			text: "Next Page →",
+			url: page.url.next,
+		},
+	}),
+};
+---
+
+<PageLayout meta={meta}>
+	<section>
+		<h1 class="title mb-6 flex items-center gap-3">
+			Publications <a class="text-accent" href="/publications/rss.xml" target="_blank">
+				<span class="sr-only">RSS feed</span>
+				<Icon aria-hidden="true" class="h-6 w-6" focusable="false" name="mdi:rss" />
+			</a>
+		</h1>
+		<ul class="mt-6 space-y-8 text-start">
+			{
+				page.data.map((publication) => (
+					<li class="">
+						<Publication publication={publication} as="h2" isPreview />
+					</li>
+				))
+			}
+		</ul>
+		<Pagination {...paginationProps} />
+	</section>
+</PageLayout>
