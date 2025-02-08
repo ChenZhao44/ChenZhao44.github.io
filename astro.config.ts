@@ -20,6 +20,8 @@ import { rehypeHeadingIds } from "@astrojs/markdown-remark";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeExternalLinks from "rehype-external-links";
 import rehypeUnwrapImages from "rehype-unwrap-images";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
 
 // https://astro.build/config
 export default defineConfig({
@@ -80,8 +82,14 @@ export default defineConfig({
 				},
 			],
 			rehypeUnwrapImages,
+			rehypeKatex,
 		],
-		remarkPlugins: [remarkReadingTime, remarkDirective, remarkAdmonitions],
+		remarkPlugins: [
+			remarkReadingTime,
+			remarkDirective,
+			remarkAdmonitions,
+			remarkMath,
+		],
 		remarkRehype: {
 			footnoteLabelProperties: {
 				className: [""],
