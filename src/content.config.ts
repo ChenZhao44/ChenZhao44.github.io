@@ -51,8 +51,16 @@ const publication = defineCollection({
 		description: z.string().optional(),
 		publishDate: z
 			.string()
-			.datetime({ offset: true }) // Ensures ISO 8601 format with offsets allowed (e.g. "2024-01-01T00:00:00Z" and "2024-01-01T00:00:00+02:00")
+			.date() // Ensures ISO 8601 format with offsets allowed (e.g. "2024-01-01T00:00:00Z" and "2024-01-01T00:00:00+02:00")
 			.transform((val) => new Date(val)),
+		authors: z.string().optional(),
+		pub: z.string().optional(),
+		img: z.string().optional(),
+		imgAlt: z.string().optional(),
+		dataURL: z.string().optional(),
+		paperURL: z.string().optional(),
+		codeURL: z.string().optional(),
+		webURL: z.string().optional(),
 	}),
 });
 
