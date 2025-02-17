@@ -6,7 +6,7 @@ authors: "Pedro Sales Rodriguez, John M Robinson, Paul Niklas Jepsen, Zhiyang He
 paperURL: "Preprint on arXiv: https://arxiv.org/abs/2412.15165"
 codeURL: ""
 webURL: ""
-img: "./figs/2024-magic_state_distillation.png"
+img: "/figs/2024-magic_state_distillation.png"
 imgAlt: "Magic State Distillation"
 pub: ""
 dataURL: ""

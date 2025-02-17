@@ -6,7 +6,7 @@ authors: "Hengyun Zhou, Chen Zhao, Madelyn Cain, Dolev Bluvstein, Casey Duckerin
 paperURL: "Preprint on arXiv: https://arxiv.org/abs/2406.17653"
 codeURL: ""
 webURL: ""
-img: "./figs/2024-algorithmic_fault_tolerance.png"
+img: "/figs/2024-algorithmic_fault_tolerance.png"
 imgAlt: "Algorithmic Fault Tolerance"
 pub: ""
 dataURL: ""
