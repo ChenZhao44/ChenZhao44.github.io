@@ -1,7 +1,9 @@
 ---
 import { type CollectionEntry, render } from "astro:content";
-import FormattedDate from "@/components/FormattedDate.astro";
+// import FormattedDate from "@/components/FormattedDate.astro";
 import type { HTMLTag, Polymorphic } from "astro/types";
+import { Image } from 'astro:assets';
+// import type { ImageMetadata } from 'astro';
 
 const HIGHLIGHTAUTHOR = "Chen Zhao";
 
@@ -35,17 +37,16 @@ const authorsParts = splitStr(publication.data.authors, HIGHLIGHTAUTHOR);
 <div
 	class="w-full not-prose group relative grid grid-cols-auto md:grid-cols-[204px_auto] gap-4 rounded-lg items-center border border-black/15 px-4 py-3	transition-colors duration-300 ease-in-out hover:bg-black/5 hover:text-black focus-visible:bg-black/5 focus-visible:text-black dark:border-white/20 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:bg-white/5 dark:focus-visible:text-white"
 >
-	<!-- <Image
-	src={publication.data.img ?? ''}
-	alt={publication.data.imgAlt ?? ''}
-	width={640}
-	height={480}
-	class="sm:w-[240px] sm:h-[135px] shadow-sm rounded-md sm:mr-6 hover:opacity-80 transition hidden md:flex"
-	loading="eager"
-	/> -->
-
-	<div></div>
-
+	<div>
+		<Image
+		src={publication.data.img ?? ''}
+		alt={publication.data.imgAlt ?? ''}
+		width={640}
+		height={480}
+		class="shadow-sm rounded-md sm:mr-6 hover:opacity-80 transition hidden md:flex"
+		loading="eager"
+		/>
+	</div>
 	<div class="flex items-center h-full">
 		<div class="flex flex-col">
 			<div class="w-full">
