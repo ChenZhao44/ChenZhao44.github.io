@@ -16,7 +16,7 @@ const allPostsByDate = allPosts
 	.slice(0, MAX_POSTS) as CollectionEntry<"post">[];
 
 // publications
-const MAX_PUBLICATIONS = 5;
+const MAX_PUBLICATIONS = 4;
 const allPublications = await getCollection("publication");
 const latestPublications = allPublications.sort(collectionDateSort).slice(0, MAX_PUBLICATIONS);
 
