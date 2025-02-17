@@ -6,7 +6,7 @@ authors: "Madelyn Cain, Chen Zhao, Hengyun Zhou, Nadine Meister, J. Pablo Bonill
 paperURL: "Paper: https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.133.240602"
 codeURL: ""
 webURL: ""
-img: "/figs/2024-correlated_decoding.png"
+img: "./figs/2024-correlated_decoding.png"
 imgAlt: "Correlated Decoding"
 pub: "Physical Review Letters"
 dataURL: ""
