@@ -12,6 +12,8 @@ import { collectionDateSort } from "@/utils/date";
 const MAX_POSTS = 10;
 const allPosts = await getAllPosts();
 const allPostsByDate = allPosts
+	.filter((post) => !post.data.tags.includes("test"))
+	.filter((post) => !post.data.tags.includes("example"))
 	.sort(collectionDateSort)
 	.slice(0, MAX_POSTS) as CollectionEntry<"post">[];
 

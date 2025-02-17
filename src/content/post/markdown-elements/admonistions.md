@@ -3,7 +3,7 @@ title: "Markdown Admonitions"
 description: "This post showcases using the markdown admonition feature in Astro Cactus"
 publishDate: "25 Aug 2024"
 updatedDate: "7 Jan 2025"
-tags: ["markdown", "admonitions"]
+tags: ["example", "markdown", "admonitions"]
 ---
 
 ## What are admonitions
