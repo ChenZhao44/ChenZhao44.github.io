@@ -1,4 +1,5 @@
 /* would like to ignore ./src/pages/og-image/[slug].png.ts */
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,200..900;1,200..900&display=swap');
 @import "tailwindcss";
 /* config for tailwindcss-typography plugin */
 @config "../../tailwind.config.ts";
@@ -17,7 +18,7 @@
 }
 
 @theme {
-	--font-display: "Source Sans Pro", "sans-serif"; 
+	--font-display: "Source Sans 3", font-sans; 
 }
 
 @layer base {
