@@ -18,7 +18,7 @@
 }
 
 @theme {
-	--font-display: "Source Sans 3", font-sans; 
+	--font-display: "Source Sans 3", sans-serif; 
 }
 
 @layer base {
