@@ -31,21 +31,21 @@ const latestPublications = allPublications.sort(collectionDateSort).slice(0, MAX
 <PageLayout meta={{ title: "Home" }}>
 	<section class="group relative flex items-center sm:0">
 		<!-- <h1 class="title mb-6">Hello World!</h1> -->
-		<div class="flex flex-col items-center">
-			<div class="mr-8 h-40 w-40">
+		<div class="flex flex-col sm:flex-row items-center">
+			<div class="mx-4 my-4">
 				<img
-					src="/profile.jpg" 
-					class="h-full w-full object-cover aspect-square rounded-full"
+					src="me.jpg" 
+					class="w-full h-full object-cover aspect-square rounded-full"
 				/>
 			</div>
-		</div>
-		<div class="flex sm:flex-col">
-			<p class="mb-4">
-				Hi, I'm Chen Zhao, a Research Scientist at QuEra Computing Inc. in Boston, MA. I focus on research in quantum error correction, quantum algorithms, and quantum software. I love turning theory into practice through coding. When I'm not in the lab, I am a professional yo-yo player.
-			</p>
-			<p>
-				<SocialList />
-			</p>
+			<div class="flex-row">
+				<p class="mb-4">
+					Hi, I'm Chen Zhao, a Research Scientist at QuEra Computing Inc. in Boston, MA. I focus on research in quantum error correction, quantum algorithms, and quantum software. I love turning theory into practice through coding. When I'm not in the lab, I am a professional yo-yo player.
+				</p>
+				<p>
+					<SocialList />
+				</p>
+			</div>
 		</div>
 	</section>
 	{
