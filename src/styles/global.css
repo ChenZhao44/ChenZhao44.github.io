@@ -16,6 +16,10 @@
 	--color-quote: oklch(55.27% 0.195 19.06);
 }
 
+@theme {
+	--font-display: "Source Sans Pro"; 
+}
+
 @layer base {
 	html {
 		color-scheme: light dark;
