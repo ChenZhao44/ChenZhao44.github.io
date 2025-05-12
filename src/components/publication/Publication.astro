@@ -1,9 +1,7 @@
 ---
 import { type CollectionEntry, render } from "astro:content";
-// import FormattedDate from "@/components/FormattedDate.astro";
 import type { HTMLTag, Polymorphic } from "astro/types";
 import { Image } from 'astro:assets';
-// import type { ImageMetadata } from 'astro';
 
 const HIGHLIGHTAUTHOR = "Chen Zhao";
 
@@ -20,6 +18,7 @@ const splitStr = (authors: string | undefined, targetAuthor: string) => {
   const parts = authors.split(new RegExp(`(${targetAuthor})`, 'g'));
   return parts;
 };
+
 const decomposeURL = (URL: string | undefined) => {
   if (!URL) return { text: '', url: '' };
   const parts = URL.split(": ");
@@ -30,7 +29,21 @@ const dataLink = decomposeURL(publication.data.dataURL);
 const paperLink = decomposeURL(publication.data.paperURL);
 const codeLink = decomposeURL(publication.data.codeURL);
 const webLink = decomposeURL(publication.data.webURL);
-const authorsParts = splitStr(publication.data.authors, HIGHLIGHTAUTHOR);
+const authorsParts = splitStr(publication.data.authors, HIGHLIGHTAUTHOR).filter(x => x.length > 0);
+const moreAuthors = publication.data.moreAuthors;
+const correspondingAuthors = publication.data.correspondingAuthors;
+
+const hasManyAuthors = moreAuthors && moreAuthors.length > 0;
+const hasCorrespondingAuthors = correspondingAuthors && correspondingAuthors.length > 0;
+
+// Debug logging
+console.log('Full publication data:', publication);
+console.log('Publication data:', publication.data);
+// console.log('More authors:', moreAuthors);
+// console.log('Corresponding authors:', correspondingAuthors);
+// console.log('Has many authors:', hasManyAuthors);
+// console.log('Has corresponding authors:', hasCorrespondingAuthors);
+console.log('Authors parts:', authorsParts);
 
 ---
 
@@ -54,9 +67,70 @@ const authorsParts = splitStr(publication.data.authors, HIGHLIGHTAUTHOR);
 					{publication.data.title}
 				</div>
 				<div class="text-sm w-full">
-					{authorsParts.map((part:any) =>
-						part === HIGHLIGHTAUTHOR ? <u><strong>{part}</strong></u> : part
-					)}
+					<div class="authors-container">
+						<div class="authors-list">
+							<span class="no-space">{authorsParts.map((part: string) =>
+								part.includes(HIGHLIGHTAUTHOR) ? <u><strong>{part}</strong></u> : part
+							)}</span>{hasManyAuthors && (<span class="separator">, </span>)}
+							{hasManyAuthors && (
+								<span class="more-authors hidden">{moreAuthors}</span>
+								<button
+									type="button"
+									class="show-more-btn text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ml-2"
+									onclick="
+										const more = this.parentElement.querySelector('.more-authors');
+										more.classList.toggle('hidden');
+										this.textContent = more.classList.contains('hidden') ? '[more]' : '[less]';
+									"
+								>[more]</button><span class="separator">, </span>
+							)}
+							{hasCorrespondingAuthors && (
+								<span class="corresponding-authors">
+									{correspondingAuthors}
+								</span>
+							)}
+						</div>
+					</div>
+					<style>
+						.no-space {
+							display: inline;
+							padding: 0;
+							margin: 0;
+						}
+						.authors-container {
+							display: flex;
+							align-items: baseline;
+							flex-wrap: wrap;
+							font-size: 0;
+						}
+						.authors-container > * {
+							font-size: 0.875rem;
+						}
+						.authors-list {
+							display: inline;
+							padding: 0;
+							margin: 0;
+						}
+						.more-authors {
+							display: inline;
+							padding: 0;
+							margin: 0;
+						}
+						.more-authors.hidden {
+							display: none;
+							padding: 0;
+							margin: 0;
+						}
+						.show-more-btn {
+							cursor: pointer;
+							background: none;
+							border: none;
+							padding: 0;
+							margin: 0;
+							font: inherit;
+							display: inline;
+						}
+					</style>
 				</div>
 				<div class="text-sm w-full">
 					{paperLink.url!="" && <a class="underline hover:text-cyan-500 text-orange-500 dark:hover:text-cyan-500 transition-colors duration-300 ease-in-out visited:text-indigo-400" target="_blank" href={paperLink.url}>{paperLink.text}</a>}
@@ -76,41 +150,3 @@ const authorsParts = splitStr(publication.data.authors, HIGHLIGHTAUTHOR);
 		</div>
 	</div>
 </div>
-<!-- 
-<article
-	class:list={[
-		isPreview && "inline-grid rounded-md bg-[rgb(240,240,240)] px-4 py-3 dark:bg-[rgb(33,35,38)]",
-	]}
-	data-pagefind-body={isPreview ? false : true}
->
-	<Tag class="title" class:list={{ "text-base": isPreview }}>
-		{
-			isPreview ? (
-				<a class="cactus-link" href={`/publications/${publication.id}/`}>
-					{publication.data.title}
-				</a>
-			) : (
-				<>{publication.data.title}</>
-			)
-		}
-	</Tag>
-	<FormattedDate
-		dateTimeOptions={{
-			hour: "2-digit",
-			minute: "2-digit",
-			year: "2-digit",
-			month: "2-digit",
-			day: "2-digit",
-		}}
-		date={publication.data.publishDate}
-	/>
-	<div class="authors mt-2">
-		{publication.data.authors}
-	</div>
-	<div
-		class="prose prose-sm prose-cactus mt-4 max-w-none [&>p:last-of-type]:mb-0"
-		class:list={{ "line-clamp-6": isPreview }}
-	>
-		<Content />
-	</div>
-</article> -->
