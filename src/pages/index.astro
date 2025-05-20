@@ -57,7 +57,7 @@ const displayedPublication = selectedPublications.sort(collectionDateSort).slice
 				<ul class="space-y-4" role="list">
 					{displayedPublication.map((publication) => (
 						<li>
-							<Publication publication={publication} as="h3" isPreview />
+							<Publication publication={publication} as="h3" isPreview={true} />
 						</li>
 					))}
 				</ul>
