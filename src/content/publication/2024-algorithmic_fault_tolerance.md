@@ -1,6 +1,7 @@
 ---
 title: "Algorithmic Fault Tolerance for Fast Quantum Computing"
 description: ""
+isSelected: true
 publishDate: "2024-06-25"
 authors: "Hengyun Zhou*, Chen Zhao*, Madelyn Cain, Dolev Bluvstein, Casey Duckering, Hong-Ye Hu, Sheng-Tao Wang, Aleksander Kubica"
 correspondingAuthors: "Mikhail D. Lukin"

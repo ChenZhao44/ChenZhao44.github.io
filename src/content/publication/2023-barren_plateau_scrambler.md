@@ -1,6 +1,7 @@
 ---
 title: "Barren plateaus from learning scramblers with local cost functions"
 description: ""
+isSelected: false
 publishDate: "2023-01-17"
 authors: "Roy J. Garcia, Chen Zhao, Kaifeng Bu, Arthur Jaffe"
 paperURL: "PDF: https://link.springer.com/article/10.1007/JHEP01(2023)090"
