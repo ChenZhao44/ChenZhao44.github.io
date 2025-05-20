@@ -46,12 +46,35 @@ const hasCorrespondingAuthors = correspondingAuthors && correspondingAuthors.len
 >
 	<div>
 		<img
-		src={publication.data.img ?? ''}
-		alt={publication.data.imgAlt ?? ''}
-		width={640}
-		height={480}
-		class="shadow-sm rounded-md sm:mr-6 hover:opacity-80 transition hidden md:flex"
-		loading="eager"
+			src={publication.data.img ?? ''}
+			alt={publication.data.imgAlt ?? ''}
+			width={640}
+			height={480}
+			class="shadow-sm rounded-md sm:mr-6 hover:opacity-80 transition hidden md:flex cursor-pointer"
+			loading="eager"
+			onclick="
+				const modal = document.createElement('div');
+				modal.style.position = 'fixed';
+				modal.style.top = '0';
+				modal.style.left = '0';
+				modal.style.width = '100%';
+				modal.style.height = '100%';
+				modal.style.backgroundColor = 'rgba(0,0,0,0.8)';
+				modal.style.display = 'flex';
+				modal.style.justifyContent = 'center';
+				modal.style.alignItems = 'center';
+				modal.style.zIndex = '1000';
+				modal.onclick = () => modal.remove();
+				
+				const img = document.createElement('img');
+				img.src = this.src;
+				img.style.maxWidth = '90%';
+				img.style.maxHeight = '90%';
+				img.style.objectFit = 'contain';
+				
+				modal.appendChild(img);
+				document.body.appendChild(modal);
+			"
 		/>
 	</div>
 	<div class="flex items-center h-full">
