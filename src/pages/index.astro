@@ -20,8 +20,10 @@ const allPostsByDate = allPosts
 // publications
 const MAX_PUBLICATIONS = 5;
 const allPublications = await getCollection("publication");
-const selectedPublications = allPublications.filter((publication) => publication.data.isSelected);
-const displayedPublication = selectedPublications.sort(collectionDateSort).slice(0, MAX_PUBLICATIONS);
+const selectedPublications = allPublications.filter((publication) => publication.data.selectionPriority > 0);
+const displayedPublication = selectedPublications
+    .sort((a, b) => b.data.selectionPriority - a.data.selectionPriority)
+    .slice(0, MAX_PUBLICATIONS);
 
 // notes
 // const MAX_NOTES = 5;
