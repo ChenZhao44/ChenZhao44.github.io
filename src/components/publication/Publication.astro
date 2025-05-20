@@ -1,7 +1,8 @@
 ---
-import { type CollectionEntry, render } from "astro:content";
+// import { type CollectionEntry, render } from "astro:content";
+import { type CollectionEntry } from "astro:content";
 import type { HTMLTag, Polymorphic } from "astro/types";
-import { Image } from 'astro:assets';
+// import { Image } from 'astro:assets';
 import { undefined } from "astro:schema";
 
 const HIGHLIGHTAUTHOR = "Chen Zhao";
@@ -11,8 +12,9 @@ type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }> & {
 	isPreview?: boolean | undefined;
 };
 
-const { as: Tag = "div", publication, isPreview = false } = Astro.props;
-const { Content } = await render(publication);
+// const { as: Tag = "div", publication, isPreview = false } = Astro.props;
+const { publication, isPreview = false } = Astro.props;
+// const { Content } = await render(publication);
 
 const splitStr = (authors: string | undefined, targetAuthor: string) => {
   if (!authors) return [];
