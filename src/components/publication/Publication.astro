@@ -2,6 +2,7 @@
 import { type CollectionEntry, render } from "astro:content";
 import type { HTMLTag, Polymorphic } from "astro/types";
 import { Image } from 'astro:assets';
+import { undefined } from "astro:schema";
 
 const HIGHLIGHTAUTHOR = "Chen Zhao";
 
@@ -30,10 +31,10 @@ const paperLink = decomposeURL(publication.data.paperURL);
 const codeLink = decomposeURL(publication.data.codeURL);
 const webLink = decomposeURL(publication.data.webURL);
 const authorsParts = splitStr(publication.data.authors, HIGHLIGHTAUTHOR).filter(x => x.length > 0);
-const moreAuthors = publication.data.moreAuthors;
 const correspondingAuthors = publication.data.correspondingAuthors;
 
-const hasManyAuthors = moreAuthors && moreAuthors.length > 0;
+const hasManyAuthors = publication.data.moreAuthors && publication.data.moreAuthors.length > 0;
+const moreAuthors = hasManyAuthors ? publication.data.moreAuthors + ', ' : undefined;
 const hasCorrespondingAuthors = correspondingAuthors && correspondingAuthors.length > 0;
 
 // Debug logging
@@ -68,13 +69,11 @@ console.log('Authors parts:', authorsParts);
 				</div>
 				<div class="text-sm w-full">
 					<div class="authors-container">
-						<div class="authors-list">
-							<span class="no-space">{authorsParts.map((part: string) =>
+						<div class="no-space">
+							<span class="authors-list">{authorsParts.map((part: string) =>
 								part.includes(HIGHLIGHTAUTHOR) ? <u><strong>{part}</strong></u> : part
-							)}</span>{hasManyAuthors && (<span class="separator">, </span>)}
-							{hasManyAuthors && (
-								<span class="more-authors hidden">{moreAuthors}</span>
-								<button
+							)}</span>{hasManyAuthors && (<span class="separator">, </span>)}{hasManyAuthors && (
+								<span class="more-authors hidden">{moreAuthors}</span><button
 									type="button"
 									class="show-more-btn text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ml-2"
 									onclick="
@@ -82,11 +81,11 @@ console.log('Authors parts:', authorsParts);
 										more.classList.toggle('hidden');
 										this.textContent = more.classList.contains('hidden') ? '[more]' : '[less]';
 									"
-								>[more]</button><span class="separator">, </span>
-							)}
+								>[more]</button>
+							)}{hasCorrespondingAuthors && (<span class="separator">, </span>)}
 							{hasCorrespondingAuthors && (
 								<span class="corresponding-authors">
-									{correspondingAuthors}
+									<span set:html={correspondingAuthors.split(',').map((author: string) => author.trim() + '<sup>†</sup>').join(', ')}></span>
 								</span>
 							)}
 						</div>
@@ -129,6 +128,11 @@ console.log('Authors parts:', authorsParts);
 							margin: 0;
 							font: inherit;
 							display: inline;
+						}
+						.corresponding-authors {
+							display: inline;
+							padding: 0;
+							margin: 0;
 						}
 					</style>
 				</div>
