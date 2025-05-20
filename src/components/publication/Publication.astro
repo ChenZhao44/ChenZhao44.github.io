@@ -37,15 +37,6 @@ const hasManyAuthors = publication.data.moreAuthors && publication.data.moreAuth
 const moreAuthors = hasManyAuthors ? publication.data.moreAuthors + ', ' : undefined;
 const hasCorrespondingAuthors = correspondingAuthors && correspondingAuthors.length > 0;
 
-// Debug logging
-console.log('Full publication data:', publication);
-console.log('Publication data:', publication.data);
-// console.log('More authors:', moreAuthors);
-// console.log('Corresponding authors:', correspondingAuthors);
-// console.log('Has many authors:', hasManyAuthors);
-// console.log('Has corresponding authors:', hasCorrespondingAuthors);
-console.log('Authors parts:', authorsParts);
-
 ---
 
 <div

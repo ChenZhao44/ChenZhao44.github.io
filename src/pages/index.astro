@@ -18,9 +18,10 @@ const allPostsByDate = allPosts
 	.slice(0, MAX_POSTS) as CollectionEntry<"post">[];
 
 // publications
-const MAX_PUBLICATIONS = 4;
+const MAX_PUBLICATIONS = 5;
 const allPublications = await getCollection("publication");
-const latestPublications = allPublications.sort(collectionDateSort).slice(0, MAX_PUBLICATIONS);
+const selectedPublications = allPublications.filter((publication) => publication.data.isSelected);
+const displayedPublication = selectedPublications.sort(collectionDateSort).slice(0, MAX_PUBLICATIONS);
 
 // notes
 // const MAX_NOTES = 5;
@@ -48,13 +49,13 @@ const latestPublications = allPublications.sort(collectionDateSort).slice(0, MAX
 		</div>
 	</section>
 	{
-		latestPublications.length > 0 && (
+		displayedPublication.length > 0 && (
 			<section class="mt-16">
 				<h2 class="title text-accent mb-6 text-xl">
-					<a href="/publications/">Publications</a>
+					<a href="/publications/">Selected publications</a>
 				</h2>
 				<ul class="space-y-4" role="list">
-					{latestPublications.map((publication) => (
+					{displayedPublication.map((publication) => (
 						<li>
 							<Publication publication={publication} as="h3" isPreview />
 						</li>
