@@ -56,7 +56,7 @@ const publication = defineCollection({
 		selectionPriority: z.number().default(0),		
 		authors: z.string().optional(),
 		moreAuthors: z.string().optional(),
-		correspondingAuthors: z.string().optional(),
+		correspondingAuthors: z.array(z.string()).optional(),
 		pub: z.string().optional(),
 		img: z.string().optional(),
 		imgAlt: z.string().optional(),
