@@ -53,10 +53,11 @@ const publication = defineCollection({
 			.string()
 			.date() // Ensures ISO 8601 format with offsets allowed (e.g. "2024-01-01T00:00:00Z" and "2024-01-01T00:00:00+02:00")
 			.transform((val) => new Date(val)),
-		selectionPriority: z.number().default(0),		
-		authors: z.string().optional(),
-		moreAuthors: z.string().optional(),
-		correspondingAuthors: z.array(z.string()).optional(),
+			selectionPriority: z.number().default(0),		
+			authors: z.string().optional(),
+			moreAuthors: z.string().optional(),
+			lastAuthors: z.string().optional(),
+			correspondingAuthors: z.array(z.string()).optional(),
 		pub: z.string().optional(),
 		img: z.string().optional(),
 		imgAlt: z.string().optional(),

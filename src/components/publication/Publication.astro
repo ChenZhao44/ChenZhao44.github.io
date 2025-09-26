@@ -60,10 +60,15 @@ const formattedAuthors = addHighlight(
   HIGHLIGHTAUTHOR,
 );
 
-const hasManyAuthors = publication.data.moreAuthors && publication.data.moreAuthors.length > 0;
-const moreAuthors = hasManyAuthors ? publication.data.moreAuthors : undefined;
+const hasMoreAuthors = Boolean(publication.data.moreAuthors && publication.data.moreAuthors.length > 0);
+const moreAuthors = hasMoreAuthors ? publication.data.moreAuthors : undefined;
 const formattedMoreAuthors = moreAuthors
   ? addHighlight(addCorrespondingMarkers(moreAuthors, correspondingAuthorSet), HIGHLIGHTAUTHOR)
+  : undefined;
+const hasLastAuthors = Boolean(publication.data.lastAuthors && publication.data.lastAuthors.length > 0);
+const lastAuthors = hasLastAuthors ? publication.data.lastAuthors : undefined;
+const formattedLastAuthors = lastAuthors
+  ? addHighlight(addCorrespondingMarkers(lastAuthors, correspondingAuthorSet), HIGHLIGHTAUTHOR)
   : undefined;
 
 ---
@@ -113,24 +118,31 @@ const formattedMoreAuthors = moreAuthors
 				<div class="text-sm w-full">
 					<div class="authors-container">
 						<div class="no-space">
-							<span class="authors-list" set:html={formattedAuthors}></span>{hasManyAuthors && (
-								<span class="separator">, </span>
-							)}{hasManyAuthors && (
-								<span class="more-authors hidden" set:html={formattedMoreAuthors ?? ''}></span>
-							)}{hasManyAuthors && (
-								<button
-									type="button"
-									class="show-more-btn text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ml-2"
-									onclick="
-										const more = this.parentElement.querySelector('.more-authors');
-										more.classList.toggle('hidden');
-										this.textContent = more.classList.contains('hidden') ? '[more]' : '[less]';
-									"
-								>[more]</button>
-							)}
+								<span class="authors-list" set:html={formattedAuthors}></span>
+								{hasMoreAuthors && (
+									<>
+										<span class="separator">, </span>
+										<span class="more-authors hidden" set:html={formattedMoreAuthors ?? ''}></span>
+										<button
+											type="button"
+											class="show-more-btn text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ml-2"
+											onclick="
+												const more = this.parentElement.querySelector('.more-authors');
+												more.classList.toggle('hidden');
+												this.textContent = more.classList.contains('hidden') ? '[more]' : '[less]';
+											"
+										>[more]</button>
+									</>
+								)}
+								{hasLastAuthors && (
+									<>
+										<span class="separator">, </span>
+										<span class="last-authors" set:html={formattedLastAuthors ?? ''}></span>
+									</>
+								)}
+							</div>
 						</div>
-					</div>
-					<style>
+						<style>
 						.no-space {
 							display: inline;
 							padding: 0;
@@ -150,12 +162,13 @@ const formattedMoreAuthors = moreAuthors
 							padding: 0;
 							margin: 0;
 						}
-						.more-authors {
-							display: inline;
-							padding: 0;
-							margin: 0;
-						}
-						.more-authors.hidden {
+							.more-authors,
+							.last-authors {
+								display: inline;
+								padding: 0;
+								margin: 0;
+							}
+							.more-authors.hidden {
 							display: none;
 							padding: 0;
 							margin: 0;
