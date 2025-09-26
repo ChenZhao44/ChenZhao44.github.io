@@ -5,11 +5,11 @@ selectionPriority: 5
 publishDate: "2024-06-25"
 authors: "Hengyun Zhou*, Chen Zhao*, Madelyn Cain, Dolev Bluvstein, Casey Duckering, Hong-Ye Hu, Sheng-Tao Wang, Aleksander Kubica"
 correspondingAuthors: "and Mikhail D. Lukin"
-paperURL: "PDF: https://arxiv.org/abs/2406.17653"
+paperURL: "PDF: https://doi.org/10.1038/s41586-025-09543-5"
 codeURL: ""
 webURL: ""
 img: "/figs/2024-algorithmic_fault_tolerance.png"
 imgAlt: "Algorithmic Fault Tolerance"
-pub: ""
+pub: "Nature"
 dataURL: ""
 ---

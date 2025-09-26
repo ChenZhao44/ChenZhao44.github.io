@@ -4,11 +4,11 @@ description: "Neutral atom arrays have recently emerged as a promising platform 
 selectionPriority: 1
 publishDate: "2025-05-21"
 authors: "Hengyun Zhou, Casey Duckering, Chen Zhao, Dolev Bluvstein, Madelyn Cain, Aleksander Kubica, Shengtao Wang, Mikhail D. Lukin"
-paperURL: "PDF: https://arxiv.org/abs/2505.15907"
+paperURL: "PDF: https://dl.acm.org/doi/abs/10.1145/3695053.3731039"
 codeURL: ""
 webURL: ""
 img: "/figs/2025-resource_estimation.png"
 imgAlt: "Resource Estimation for Transversal Architectures"
-pub: ""
+pub: "ISCA '25: Proceedings of the 52nd Annual International Symposium on Computer Architecture"
 dataURL: ""
 ---
