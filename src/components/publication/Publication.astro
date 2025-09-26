@@ -16,28 +16,60 @@ type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }> & {
 const { publication, isPreview = false } = Astro.props;
 // const { Content } = await render(publication);
 
-const splitStr = (authors: string | undefined, targetAuthor: string) => {
-  if (!authors) return [];
-  const parts = authors.split(new RegExp(`(${targetAuthor})`, 'g'));
-  return parts;
-};
-
 const decomposeURL = (URL: string | undefined) => {
   if (!URL) return { text: '', url: '' };
   const parts = URL.split(": ");
   return { text: parts[0], url: parts[1] };
 };
 
+const escapeRegExp = (value: string) =>
+	value.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\$&');
+
+const addCorrespondingMarkers = (text: string, names: Set<string>) => {
+  if (names.size === 0 || text.length === 0) return text;
+
+  let result = text;
+  names.forEach((name) => {
+    if (name.length === 0) return;
+    const pattern = new RegExp(`(${escapeRegExp(name)})(\\*?)`, 'g');
+    result = result.replace(pattern, '$1$2<sup>†</sup>');
+  });
+
+  return result;
+};
+
+const addHighlight = (text: string, highlightName: string) => {
+  if (text.length === 0 || highlightName.length === 0) return text;
+
+  const pattern = new RegExp(`(${escapeRegExp(highlightName)})(\\*?)`, 'g');
+  return text.replace(pattern, '<u><strong>$1</strong></u>$2');
+};
+
 const dataLink = decomposeURL(publication.data.dataURL);
 const paperLink = decomposeURL(publication.data.paperURL);
 const codeLink = decomposeURL(publication.data.codeURL);
 const webLink = decomposeURL(publication.data.webURL);
-const authorsParts = splitStr(publication.data.authors, HIGHLIGHTAUTHOR).filter(x => x.length > 0);
-const correspondingAuthors = publication.data.correspondingAuthors;
+const correspondingAuthors = publication.data.correspondingAuthors ?? [];
+const correspondingAuthorNames = correspondingAuthors
+  .map((author: string) => author.trim())
+  .filter((author: string) => author.length > 0);
+const correspondingAuthorSet = new Set<string>(correspondingAuthorNames);
+const baseAuthors = publication.data.authors ?? '';
+const formattedAuthors = addHighlight(
+  addCorrespondingMarkers(baseAuthors, correspondingAuthorSet),
+  HIGHLIGHTAUTHOR,
+);
 
-const hasManyAuthors = publication.data.moreAuthors && publication.data.moreAuthors.length > 0;
-const moreAuthors = hasManyAuthors ? publication.data.moreAuthors + ', ' : undefined;
-const hasCorrespondingAuthors = correspondingAuthors && correspondingAuthors.length > 0;
+const hasMoreAuthors = Boolean(publication.data.moreAuthors && publication.data.moreAuthors.length > 0);
+const moreAuthors = hasMoreAuthors ? publication.data.moreAuthors : undefined;
+const formattedMoreAuthors = moreAuthors
+  ? addHighlight(addCorrespondingMarkers(moreAuthors, correspondingAuthorSet), HIGHLIGHTAUTHOR)
+  : undefined;
+const hasLastAuthors = Boolean(publication.data.lastAuthors && publication.data.lastAuthors.length > 0);
+const lastAuthors = hasLastAuthors ? publication.data.lastAuthors : undefined;
+const formattedLastAuthors = lastAuthors
+  ? addHighlight(addCorrespondingMarkers(lastAuthors, correspondingAuthorSet), HIGHLIGHTAUTHOR)
+  : undefined;
 
 ---
 
@@ -86,27 +118,31 @@ const hasCorrespondingAuthors = correspondingAuthors && correspondingAuthors.len
 				<div class="text-sm w-full">
 					<div class="authors-container">
 						<div class="no-space">
-							<span class="authors-list">{authorsParts.map((part: string) =>
-								part.includes(HIGHLIGHTAUTHOR) ? <u><strong>{part}</strong></u> : part
-							)}</span>{hasManyAuthors && (<span class="separator">, </span>)}{hasManyAuthors && (
-								<span class="more-authors hidden">{moreAuthors}</span><button
-									type="button"
-									class="show-more-btn text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ml-2"
-									onclick="
-										const more = this.parentElement.querySelector('.more-authors');
-										more.classList.toggle('hidden');
-										this.textContent = more.classList.contains('hidden') ? '[more]' : '[less]';
-									"
-								>[more]</button>
-							)}{hasCorrespondingAuthors && (<span class="separator">, </span>)}
-							{hasCorrespondingAuthors && (
-								<span class="corresponding-authors">
-									<span set:html={correspondingAuthors.split(',').map((author: string) => author.trim() + '<sup>†</sup>').join(', ')}></span>
-								</span>
-							)}
+								<span class="authors-list" set:html={formattedAuthors}></span>
+								{hasMoreAuthors && (
+									<>
+										<span class="separator">, </span>
+										<span class="more-authors hidden" set:html={formattedMoreAuthors ?? ''}></span>
+										<button
+											type="button"
+											class="show-more-btn text-sm text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 ml-2"
+											onclick="
+												const more = this.parentElement.querySelector('.more-authors');
+												more.classList.toggle('hidden');
+												this.textContent = more.classList.contains('hidden') ? '[more]' : '[less]';
+											"
+										>[more]</button>
+									</>
+								)}
+								{hasLastAuthors && (
+									<>
+										<span class="separator">, </span>
+										<span class="last-authors" set:html={formattedLastAuthors ?? ''}></span>
+									</>
+								)}
+							</div>
 						</div>
-					</div>
-					<style>
+						<style>
 						.no-space {
 							display: inline;
 							padding: 0;
@@ -126,12 +162,13 @@ const hasCorrespondingAuthors = correspondingAuthors && correspondingAuthors.len
 							padding: 0;
 							margin: 0;
 						}
-						.more-authors {
-							display: inline;
-							padding: 0;
-							margin: 0;
-						}
-						.more-authors.hidden {
+							.more-authors,
+							.last-authors {
+								display: inline;
+								padding: 0;
+								margin: 0;
+							}
+							.more-authors.hidden {
 							display: none;
 							padding: 0;
 							margin: 0;

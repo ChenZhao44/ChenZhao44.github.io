@@ -1,5 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
+import XLogo from "@/components/icons/XLogo.astro";
 
 /** 
 	Uses https://www.astroicon.dev/getting-started/
@@ -10,7 +11,8 @@ const socialLinks: {
 	friendlyName: string;
 	isWebmention?: boolean;
 	link: string;
-	name: string;
+	name?: string;
+	iconComponent?: any;
 }[] = [
 	{
 		friendlyName: "Github",
@@ -25,7 +27,7 @@ const socialLinks: {
 	{
 		friendlyName: "X",
 		link: "https://x.com/ChenZhao44",
-		name: "mdi:twitter",
+		iconComponent: XLogo,
 	},
 	{
 		friendlyName: "Instagram",
@@ -39,7 +41,9 @@ const socialLinks: {
 	<p>Social links: </p>
 	<ul class="flex flex-1 items-center gap-x-2 sm:flex-initial">
 		{
-			socialLinks.map(({ friendlyName, isWebmention, link, name }) => (
+			socialLinks.map(({ friendlyName, iconComponent, isWebmention, link, name }) => {
+				const IconComponent = iconComponent;
+				return (
 				<li class="flex">
 					<a
 						class="hover:text-link inline-block"
@@ -47,11 +51,16 @@ const socialLinks: {
 						rel={`noreferrer ${isWebmention ? "me authn" : ""}`}
 						target="_blank"
 					>
-						<Icon aria-hidden="true" class="h-8 w-8" focusable="false" name={name} />
+						{IconComponent ? (
+							<IconComponent class="h-8 w-8" />
+						) : (
+							<Icon aria-hidden="true" class="h-8 w-8" focusable="false" name={name!} />
+						)}
 						<span class="sr-only">{friendlyName}</span>
 					</a>
 				</li>
-			))
+			);
+			})
 		}
 	</ul>
 </div>
