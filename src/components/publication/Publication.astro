@@ -53,7 +53,7 @@ const correspondingAuthors = publication.data.correspondingAuthors ?? [];
 const correspondingAuthorNames = correspondingAuthors
   .map((author: string) => author.trim())
   .filter((author: string) => author.length > 0);
-const correspondingAuthorSet = new Set(correspondingAuthorNames);
+const correspondingAuthorSet = new Set<string>(correspondingAuthorNames);
 const baseAuthors = publication.data.authors ?? '';
 const formattedAuthors = addHighlight(
   addCorrespondingMarkers(baseAuthors, correspondingAuthorSet),
